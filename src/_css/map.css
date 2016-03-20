@@ -1,0 +1,12 @@
+canvas {
+	-ms-interpolation-mode: nearest-neighbor; /* IE */
+	image-rendering: -webkit-optimize-contrast; /* Old Android, Safari, UC Browser */
+	image-rendering: -moz-crisp-edges; /* Firefox */
+	image-rendering: crisp-edges; /* Safari */
+	image-rendering: pixelated; /* Chrome & Opera */
+}
+
+canvas,
+.leaflet-container {
+	background: #000;
+}
