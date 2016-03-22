@@ -47,9 +47,14 @@
 		var s = '000' + String(number);
 		return s.substr(s.length - size);
 	};
-	var setUrlPosition = function(coords) {
+	var setUrlPosition = function(coords, forceHash) {
 		var url = '#' + coords.x + ',' + coords.y + ',' + coords.floor + ':' + coords.zoom;
-		window.history.pushState(null, null, url);
+		if (
+			forceHash ||
+			(location.hash && location.hash != url)
+		) {
+			window.history.pushState(null, null, url);
+		}
 	};
 	var getUrlPosition = function() {
 		var position = {
@@ -158,7 +163,7 @@
 		mapLayer._setZoomTransform = function(level, center, zoom) {
 			var coords = getUrlPosition();
 			coords.zoom = zoom;
-			setUrlPosition(coords);
+			setUrlPosition(coords, false);
 			var scale = this._map.getZoomScale(zoom, level.zoom);
 			var translate = level.origin.multiplyBy(scale).subtract(
 				this._map._getNewPixelOrigin(center, zoom)
@@ -285,7 +290,7 @@
 				'y': coordY,
 				'floor': _this.floor,
 				'zoom': zoom
-			});
+			}, true);
 		});
 		L.crosshairs().addTo(map);
 		L.control.coordinates({
