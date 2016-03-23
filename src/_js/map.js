@@ -43,6 +43,7 @@
 	};
 	var BLANK_COLOR = MAP_COLORS[0x00];
 	var EMPTY_MAP_DATA = new Uint8Array(new ArrayBuffer(256 * 256));
+	var isEmbed = location.pathname.indexOf('/embed') != -1;
 	var padNumber = function(number, size) {
 		var s = '000' + String(number);
 		return s.substr(s.length - size);
@@ -229,7 +230,7 @@
 			'maxZoom': 4,
 			'maxNativeZoom': 0,
 			'zoomAnimationThreshold': 4,
-			'fullscreenControl': true,
+			'fullscreenControl': !isEmbed,
 			'attributionControl': false,
 			'keyboardPanOffset': 200,
 			'unloadInvisibleTiles': false,
