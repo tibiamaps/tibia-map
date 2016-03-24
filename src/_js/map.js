@@ -226,19 +226,18 @@
 		var xMax = bounds.xMax + 1 + xPadding;
 		var maxBounds = L.latLngBounds(L.latLng(-yMin, xMin), L.latLng(-yMax, xMax));
 		var map = this.map = L.map('map', {
-			'fadeAnimation': false,
-			'minZoom': 0,
-			'maxZoom': 4,
-			'maxNativeZoom': 0,
-			'zoomAnimationThreshold': 4,
 			'attributionControl': false,
-			'keyboardPanOffset': 200,
+			'crs': L.CRS.CustomZoom,
+			'fadeAnimation': false,
+			'keyboardPanOffset': 400,
+			'maxBounds': maxBounds,
+			'maxNativeZoom': 0,
+			'maxZoom': 4,
+			'minZoom': 0,
+			'scrollWheelZoom': !isEmbed,
 			'unloadInvisibleTiles': false,
 			'updateWhenIdle': true,
-			'keyboardPanOffset': 500,
-			'crs': L.CRS.CustomZoom,
-			'maxBounds': maxBounds,
-			'scrollWheelZoom': !isEmbed
+			'zoomAnimationThreshold': 4
 		});
 		L.control.fullscreen({
 			'title': {
@@ -320,15 +319,45 @@
 	var map = new TibiaMap();
 	map.init();
 
+	var fakeClick = function(target) {
+		var event = document.createEvent('MouseEvents');
+		event.initMouseEvent('click');
+		target.dispatchEvent(event);
+	};
+
+	var fullscreen = document.querySelector('.leaflet-control-fullscreen-button');
 	// Make the fullscreen ‘button’ act as a permalink in embed views.
 	if (isEmbed) {
-		var anchor = document.querySelector('.leaflet-control-fullscreen-button');
 		// Ensure right-click → copy URL works.
-		anchor.href = location.href.replace('/embed', '');
+		fullscreen.href = location.href.replace('/embed', '');
 		// Override the fullscreen behavior.
-		anchor.addEventListener('click', function(event) {
+		fullscreen.addEventListener('click', function(event) {
 			window.top.location = location.href.replace('/embed', '');
 			event.stopPropagation();
+		});
+	} else {
+		// Add keyboard shortcuts.
+		// Since `fakeClick` seems to follow the `href` no matter what (at least in
+		// Chrome/Opera), change it to a no-op.
+		fullscreen.href = 'javascript:null';
+		document.documentElement.addEventListener('keydown', function(event) {
+			var _map = map.map;
+			if (
+				// Press `F` to toggle pseudo-fullscreen mode.
+				event.keyCode == 0x46 ||
+				// Press `Esc` to exit pseudo-fullscreen mode.
+				(event.keyCode == 0x1B && _map.isFullscreen())
+			) {
+				// The following doesn’t seem to work:
+				//_map.toggleFullscreen();
+				// …so let’s hack around it:
+				fakeClick(fullscreen);
+			}
+			// Press `C` to center the map on the selected coordinate.
+			if (event.keyCode == 0x43) {
+				var current = getUrlPosition();
+				_map.panTo(_map.unproject([current.x, current.y], 0));
+			}
 		});
 	}
 
