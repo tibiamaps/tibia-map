@@ -231,17 +231,22 @@
 			'maxZoom': 4,
 			'maxNativeZoom': 0,
 			'zoomAnimationThreshold': 4,
-			'fullscreenControl': {
-				'pseudoFullscreen': true
-			},
 			'attributionControl': false,
 			'keyboardPanOffset': 200,
 			'unloadInvisibleTiles': false,
 			'updateWhenIdle': true,
 			'keyboardPanOffset': 500,
 			'crs': L.CRS.CustomZoom,
-			'maxBounds': maxBounds
+			'maxBounds': maxBounds,
+			'scrollWheelZoom': !isEmbed
 		});
+		L.control.fullscreen({
+			'title': {
+				'false': isEmbed ? 'Explore this area in the map viewer' : 'View fullscreen',
+				'true': 'Exit fullscreen'
+			},
+			'pseudoFullscreen': true
+		}).addTo(map);
 		var baseMaps = {
 			'Floor +7': this._createMapFloorLayer(0),
 			'Floor +6': this._createMapFloorLayer(1),
@@ -318,7 +323,6 @@
 	// Make the fullscreen ‘button’ act as a permalink in embed views.
 	if (isEmbed) {
 		var anchor = document.querySelector('.leaflet-control-fullscreen-button');
-		anchor.title = 'Explore this area in the map viewer';
 		// Ensure right-click → copy URL works.
 		anchor.href = location.href.replace('/embed', '');
 		// Override the fullscreen behavior.
