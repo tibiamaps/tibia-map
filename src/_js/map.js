@@ -43,7 +43,8 @@
 	};
 	var BLANK_COLOR = MAP_COLORS[0x00];
 	var EMPTY_MAP_DATA = new Uint8Array(new ArrayBuffer(256 * 256));
-	var isEmbed = location.pathname.indexOf('/embed') != -1;
+	var isEmbed = location.pathname.indexOf('/embed') != -1 ||
+		location.search == '?embed';
 	var padNumber = function(number, size) {
 		var s = '000' + String(number);
 		return s.substr(s.length - size);
@@ -230,7 +231,9 @@
 			'maxZoom': 4,
 			'maxNativeZoom': 0,
 			'zoomAnimationThreshold': 4,
-			'fullscreenControl': !isEmbed,
+			'fullscreenControl': {
+				'pseudoFullscreen': true
+			},
 			'attributionControl': false,
 			'keyboardPanOffset': 200,
 			'unloadInvisibleTiles': false,
@@ -311,5 +314,18 @@
 
 	var map = new TibiaMap();
 	map.init();
+
+	// Make the fullscreen ‘button’ act as a permalink in embed views.
+	if (isEmbed) {
+		var anchor = document.querySelector('.leaflet-control-fullscreen-button');
+		anchor.title = 'Explore this area in the map viewer';
+		// Ensure right-click → copy URL works.
+		anchor.href = location.href.replace('/embed', '');
+		// Override the fullscreen behavior.
+		anchor.addEventListener('click', function(event) {
+			window.top.location = location.href.replace('/embed', '');
+			event.stopPropagation();
+		});
+	}
 
 }());

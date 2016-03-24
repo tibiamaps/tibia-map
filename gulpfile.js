@@ -17,7 +17,8 @@ gulp.task('clean', function() {
 gulp.task('html', function() {
 	gulp.src([
 		'src/index.html',
-		'src/small.html'
+		'src/small.html',
+		'src/embed.html'
 	])
 	.pipe(replace(/\.\.\/dist\//g, ''))
 	.pipe(gulp.dest('./dist/'));
