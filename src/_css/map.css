@@ -1,9 +1,11 @@
 canvas {
-	-ms-interpolation-mode: nearest-neighbor; /* IE */
 	image-rendering: -webkit-optimize-contrast; /* Old Android, Safari, UC Browser */
 	image-rendering: -moz-crisp-edges; /* Firefox */
 	image-rendering: crisp-edges; /* Safari */
 	image-rendering: pixelated; /* Chrome & Opera */
+	/* Note: keep this declaration at the bottom until
+	   https://github.com/postcss/autoprefixer/issues/632 is fixed. */
+	-ms-interpolation-mode: nearest-neighbor; /* IE */
 }
 
 canvas,
