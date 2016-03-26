@@ -12,10 +12,11 @@
     "gulp-concat": "^2.6.0",
     "gulp-imagemin": "^2.4.0",
     "gulp-replace": "^0.5.4",
-    "gulp-uglify": "^1.5.1"
+    "gulp-uglify": "^1.5.1",
+    "gulp-webserver": "^0.9.1"
   },
   "scripts": {
-    "test": "gulp",
-    "build": "gulp"
+    "test": "gulp build",
+    "build": "gulp build"
   }
 }

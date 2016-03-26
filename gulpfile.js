@@ -8,6 +8,7 @@ const cleanCSS = require('gulp-clean-css');
 const concat = require('gulp-concat');
 const imagemin = require('gulp-imagemin');
 const replace = require('gulp-replace');
+const server = require('gulp-webserver');
 const uglify = require('gulp-uglify');
 
 gulp.task('clean', function() {
@@ -20,14 +21,14 @@ gulp.task('html', function() {
 		'src/small.html',
 		'src/embed.html'
 	])
-	.pipe(replace(/\.\.\/dist\//g, ''))
-	.pipe(gulp.dest('./dist/'));
+		.pipe(replace(/\.\.\/dist\//g, ''))
+		.pipe(gulp.dest('./dist/'));
 
 	gulp.src([
 		'src/index.html'
 	])
-	.pipe(replace(/\.\.\/dist\//g, '../'))
-	.pipe(gulp.dest('./dist/embed/'));
+		.pipe(replace(/\.\.\/dist\//g, '../'))
+		.pipe(gulp.dest('./dist/embed/'));
 });
 
 gulp.task('css', function() {
@@ -37,10 +38,10 @@ gulp.task('css', function() {
 		'node_modules/leaflet-fullscreen/dist/leaflet.fullscreen.css',
 		'src/_css/map.css'
 	])
-	.pipe(concat('map.css'))
-	.pipe(autoprefixer()) // This (also) removes unneeded prefixes.
-	.pipe(cleanCSS())
-	.pipe(gulp.dest('./dist/'));
+		.pipe(concat('map.css'))
+		.pipe(autoprefixer()) // This (also) removes unneeded prefixes.
+		.pipe(cleanCSS())
+		.pipe(gulp.dest('./dist/'));
 });
 
 gulp.task('js', function() {
@@ -51,9 +52,9 @@ gulp.task('js', function() {
 		'node_modules/leaflet-fullscreen/dist/Leaflet.fullscreen.min.js',
 		'src/_js/map.js'
 	])
-	.pipe(concat('map.js'))
-	.pipe(uglify())
-	.pipe(gulp.dest('./dist/'));
+		.pipe(concat('map.js'))
+		.pipe(uglify())
+		.pipe(gulp.dest('./dist/'));
 });
 
 gulp.task('img', function() {
@@ -61,21 +62,30 @@ gulp.task('img', function() {
 		'node_modules/leaflet-fullscreen/dist/*.png',
 		'src/_css/*.png'
 	])
-//	.pipe(imagemin({
-//		'optimizationLevel': 7
-//	}))
-	.pipe(gulp.dest('./dist/'));
+		//.pipe(imagemin({
+		//	'optimizationLevel': 7
+		//}))
+		.pipe(gulp.dest('./dist/'));
 });
 
 gulp.task('copy', function() {
 	gulp.src(
 		'src/favicon.ico'
 	)
-	.pipe(gulp.dest('./dist/'));
+		.pipe(gulp.dest('./dist/'));
 });
 
 //gulp.task('watch', function() {
 //	gulp.watch('src/**', ['default']);
 //});
 
-gulp.task('default', ['clean', 'html', 'css', 'js', 'img', 'copy']);
+gulp.task('serve', function() {
+	gulp.src('dist')
+		.pipe(server({
+			'livereload': false,
+			'open': true
+		}));
+});
+
+gulp.task('build', ['clean', 'html', 'css', 'js', 'img', 'copy']);
+gulp.task('default', ['build', 'serve']);
