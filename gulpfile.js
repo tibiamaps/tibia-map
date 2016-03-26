@@ -22,6 +22,12 @@ gulp.task('html', function() {
 	])
 	.pipe(replace(/\.\.\/dist\//g, ''))
 	.pipe(gulp.dest('./dist/'));
+
+	gulp.src([
+		'src/index.html'
+	])
+	.pipe(replace(/\.\.\/dist\//g, '../'))
+	.pipe(gulp.dest('./dist/embed/'));
 });
 
 gulp.task('css', function() {
@@ -55,9 +61,9 @@ gulp.task('img', function() {
 		'node_modules/leaflet-fullscreen/dist/*.png',
 		'src/_css/*.png'
 	])
-	.pipe(imagemin({
-		'optimizationLevel': 7
-	}))
+//	.pipe(imagemin({
+//		'optimizationLevel': 7
+//	}))
 	.pipe(gulp.dest('./dist/'));
 });
 
@@ -67,5 +73,9 @@ gulp.task('copy', function() {
 	)
 	.pipe(gulp.dest('./dist/'));
 });
+
+//gulp.task('watch', function() {
+//	gulp.watch('src/**', ['default']);
+//});
 
 gulp.task('default', ['clean', 'html', 'css', 'js', 'img', 'copy']);

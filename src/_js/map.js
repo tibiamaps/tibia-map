@@ -43,8 +43,7 @@
 	};
 	var BLANK_COLOR = MAP_COLORS[0x00];
 	var EMPTY_MAP_DATA = new Uint8Array(new ArrayBuffer(256 * 256));
-	var isEmbed = location.pathname.indexOf('/embed') != -1 ||
-		location.search == '?embed';
+	var isEmbed = location.pathname.indexOf('/embed') != -1;
 	var padNumber = function(number, size) {
 		var s = '000' + String(number);
 		return s.substr(s.length - size);
@@ -325,14 +324,18 @@
 		target.dispatchEvent(event);
 	};
 
+	var unembed = function(url) {
+		return url.replace('/embed', '');
+	};
+
 	var fullscreen = document.querySelector('.leaflet-control-fullscreen-button');
 	// Make the fullscreen ‘button’ act as a permalink in embed views.
 	if (isEmbed) {
 		// Ensure right-click → copy URL works.
-		fullscreen.href = location.href.replace('/embed', '');
+		fullscreen.href = unembed(location.href);
 		// Override the fullscreen behavior.
 		fullscreen.addEventListener('click', function(event) {
-			window.top.location = location.href.replace('/embed', '');
+			window.top.location = unembed(location.href);
 			event.stopPropagation();
 		});
 	} else {
