@@ -1,6 +1,13 @@
 language: node_js
 after_success:
-  - "scripts/travis/auto-deploy.sh"
+  - $(npm bin)/set-up-ssh -k "${encrypted_10cf0f97a88f_key}"
+      -iv "${encrypted_10cf0f97a88f_iv}"
+      --path-encrypted-key .travis-github-deploy-key.enc
+  - $(npm bin)/update-branch --commands 'npm run build'
+      --commit-message "Update gh-pages @ ${TRAVIS_COMMIT}"
+      --directory 'dist'
+      --distribution-branch 'gh-pages'
+      --source-branch 'master'
 git:
   depth: 1
 branches:

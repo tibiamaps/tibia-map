@@ -4,7 +4,7 @@
     "leaflet-fullscreen": "^1.0.1"
   },
   "devDependencies": {
-    "@alrra/travis-scripts": "^2.0.0",
+    "@alrra/travis-scripts": "^2.1.0",
     "del": "^2.2.0",
     "gulp": "^3.9.0",
     "gulp-autoprefixer": "^3.1.0",
