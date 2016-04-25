@@ -12,3 +12,7 @@ canvas,
 .leaflet-container {
 	background: #000;
 }
+
+.leaflet-zoom-anim .leaflet-zoom-animated {
+	transition-duration: 0.15s;
+}
