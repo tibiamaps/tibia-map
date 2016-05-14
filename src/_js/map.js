@@ -299,6 +299,15 @@
 				'zoom': zoom
 			}, true);
 		});
+		// Workaround for https://github.com/tibiamaps/tibia-map/issues/2.
+		// TODO: Remove this after updating Leaflet.
+		map.on('dblclick', function() {
+			if (map.getZoom() == 4) {
+				map.doubleClickZoom.disable();
+			} else {
+				map.doubleClickZoom.enable();
+			}
+		});
 		L.crosshairs().addTo(map);
 		L.control.coordinates({
 			'position': 'bottomleft',
