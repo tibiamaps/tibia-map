@@ -51,8 +51,8 @@
 	var setUrlPosition = function(coords, forceHash) {
 		var url = '#' + coords.x + ',' + coords.y + ',' + coords.floor + ':' + coords.zoom;
 		if (
-			forceHash ||
-			(location.hash && location.hash != url)
+			forceHash &&
+			location.hash != url
 		) {
 			window.history.pushState(null, null, url);
 		}

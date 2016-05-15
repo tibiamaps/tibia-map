@@ -12,7 +12,7 @@ const server = require('gulp-webserver');
 const uglify = require('gulp-uglify');
 
 gulp.task('clean', function() {
-	del('dist/*');
+	del('dist');
 });
 
 gulp.task('html', function() {
