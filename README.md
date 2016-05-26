@@ -9,6 +9,10 @@ This is an online Tibia map viewer that uses the data from the [tibia-map-data](
 3. Run `npm install` to install the dependencies.
 4. After making changes, run `gulp` to build a new version of the `src` files into the `dist` directory.
 
+## Credits
+
+This code is based on the old TibiaMaps map viewer which was written by [@Cavitt](https://github.com/Cavitt) aka Syntax. Without his hard work, this repository probably wouldn’t exist. Respect! 👍🏻
+
 ## Maintainer
 
 | [![twitter/mathias](https://gravatar.com/avatar/24e08a9ea84deb17ae121074d0f17125?s=70)](https://twitter.com/mathias "Follow @mathias on Twitter") |
