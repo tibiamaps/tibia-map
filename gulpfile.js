@@ -46,7 +46,7 @@ gulp.task('css', function() {
 
 gulp.task('js', function() {
 	gulp.src([
-		'src/_js/leaflet.js',
+		require.resolve('leaflet'),
 		'src/_js/leaflet.coordinates.js',
 		'src/_js/leaflet.crosshairs.js',
 		require.resolve('leaflet-fullscreen'),
