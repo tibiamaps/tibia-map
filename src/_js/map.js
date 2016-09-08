@@ -263,7 +263,7 @@
 			'Floor -7': this._createMapFloorLayer(14),
 			'Floor -8': this._createMapFloorLayer(15)
 		};
-		L.control.layers(baseMaps, {}).addTo(map);
+		var layers_widget = L.control.layers(baseMaps, {}).addTo(map);
 		var current = getUrlPosition();
 		_this.floor = current.floor;
 		map.setView(map.unproject([current.x, current.y], 0), current.zoom);
@@ -321,11 +321,13 @@
 				return '<b>X</b>: ' + coordY;
 			}
 		}).addTo(map);
+		L.LevelButtons.btns = L.levelButtons({layers_widget: layers_widget}).addTo(map);
 		_this._showHoverTile();
 	};
 
 	var map = new TibiaMap();
 	map.init();
+	L.LevelButtons.btns.setTibiaMap(map);
 
 	var fakeClick = function(target) {
 		var event = document.createEvent('MouseEvents');
