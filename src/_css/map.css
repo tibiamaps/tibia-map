@@ -16,3 +16,7 @@ canvas,
 .leaflet-zoom-anim .leaflet-zoom-animated {
 	transition-duration: 0.15s;
 }
+
+.leaflet-control-layers {
+	display: none;
+}

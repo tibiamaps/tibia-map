@@ -1,3 +1,7 @@
-.levelbuttons-panel {}
+.leaflet-control-level-buttons-panel {
+	font-weight: bold;
+}
 
-.levelbuttons-panel-a {}
+.leaflet-control-level-buttons-panel-a {
+	/* TODO */
+}

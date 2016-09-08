@@ -272,7 +272,7 @@
 			var current = getUrlPosition();
 			if (current.floor !== _this.floor) {
 				_this.floor = current.floor;
-				this.mapFloors[_this.floor].addTo(map);
+				_this.mapFloors[_this.floor].addTo(map);
 			}
 			if (current.zoom !== map.getZoom()) {
 				map.setZoom(current.zoom);
@@ -280,9 +280,9 @@
 			map.panTo(map.unproject([current.x, current.y], 0));
 		});
 		map.on('baselayerchange', function(layer) {
-			for (var i = 0; i <= 15; i++) {
-				if (_this.mapFloors[i]._leaflet_id == layer._leaflet_id) {
-					_this.floor = i;
+			for (var floorID = 0; floorID <= 15; floorID++) {
+				if (_this.mapFloors[floorID]._leaflet_id == layer._leaflet_id) {
+					_this.floor = floorID;
 					break;
 				}
 			};
@@ -321,7 +321,9 @@
 				return '<b>X</b>: ' + coordY;
 			}
 		}).addTo(map);
-		L.LevelButtons.btns = L.levelButtons({layers_widget: layers_widget}).addTo(map);
+		L.LevelButtons.btns = L.levelButtons({
+			'layers_widget': layers_widget
+		}).addTo(map);
 		_this._showHoverTile();
 	};
 
