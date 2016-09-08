@@ -224,7 +224,7 @@
 		var yMax = bounds.yMax + 1 + yPadding;
 		var xMax = bounds.xMax + 1 + xPadding;
 		var maxBounds = L.latLngBounds(L.latLng(-yMin, xMin), L.latLng(-yMax, xMax));
-		var map = this.map = L.map('map', {
+		var map = _this.map = L.map('map', {
 			'attributionControl': false,
 			'crs': L.CRS.CustomZoom,
 			'fadeAnimation': false,
@@ -246,28 +246,28 @@
 			'pseudoFullscreen': true
 		}).addTo(map);
 		var baseMaps = {
-			'Floor +7': this._createMapFloorLayer(0),
-			'Floor +6': this._createMapFloorLayer(1),
-			'Floor +5': this._createMapFloorLayer(2),
-			'Floor +4': this._createMapFloorLayer(3),
-			'Floor +3': this._createMapFloorLayer(4),
-			'Floor +2': this._createMapFloorLayer(5),
-			'Floor +1': this._createMapFloorLayer(6),
-			'Ground floor': this._createMapFloorLayer(7),
-			'Floor -1': this._createMapFloorLayer(8),
-			'Floor -2': this._createMapFloorLayer(9),
-			'Floor -3': this._createMapFloorLayer(10),
-			'Floor -4': this._createMapFloorLayer(11),
-			'Floor -5': this._createMapFloorLayer(12),
-			'Floor -6': this._createMapFloorLayer(13),
-			'Floor -7': this._createMapFloorLayer(14),
-			'Floor -8': this._createMapFloorLayer(15)
+			'Floor +7': _this._createMapFloorLayer(0),
+			'Floor +6': _this._createMapFloorLayer(1),
+			'Floor +5': _this._createMapFloorLayer(2),
+			'Floor +4': _this._createMapFloorLayer(3),
+			'Floor +3': _this._createMapFloorLayer(4),
+			'Floor +2': _this._createMapFloorLayer(5),
+			'Floor +1': _this._createMapFloorLayer(6),
+			'Ground floor': _this._createMapFloorLayer(7),
+			'Floor -1': _this._createMapFloorLayer(8),
+			'Floor -2': _this._createMapFloorLayer(9),
+			'Floor -3': _this._createMapFloorLayer(10),
+			'Floor -4': _this._createMapFloorLayer(11),
+			'Floor -5': _this._createMapFloorLayer(12),
+			'Floor -6': _this._createMapFloorLayer(13),
+			'Floor -7': _this._createMapFloorLayer(14),
+			'Floor -8': _this._createMapFloorLayer(15)
 		};
 		var layers_widget = L.control.layers(baseMaps, {}).addTo(map);
 		var current = getUrlPosition();
 		_this.floor = current.floor;
 		map.setView(map.unproject([current.x, current.y], 0), current.zoom);
-		this.mapFloors[current.floor].addTo(map);
+		_this.mapFloors[current.floor].addTo(map);
 		window.addEventListener('popstate', function(event) {
 			var current = getUrlPosition();
 			if (current.floor !== _this.floor) {
