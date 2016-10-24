@@ -8,14 +8,14 @@ L.LevelButtons = L.Control.extend({
 		var plugin_container = L.DomUtil.create('div', 'leaflet-control-level-buttons-panel leaflet-bar');
 
 		var up_button = L.DomUtil.create('a', 'leaflet-control-level-buttons-a', plugin_container);
-		up_button.textContent = '\u2191';
+		up_button.textContent = '\u25B2';
 		up_button.href = '#';
 		L.DomEvent.addListener(up_button, 'click', this._onUpButton, this);
 		L.DomEvent.disableClickPropagation(up_button);
 		plugin_container.appendChild(up_button);
 
 		var down_button = L.DomUtil.create('a', 'leaflet-control-level-buttons-a', plugin_container);
-		down_button.textContent = '\u2193';
+		down_button.textContent = '\u25BC';
 		down_button.href = '#';
 		L.DomEvent.addListener(down_button, 'click', this._onDownButton, this);
 		L.DomEvent.disableClickPropagation(down_button);

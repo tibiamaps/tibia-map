@@ -20,3 +20,11 @@ canvas,
 .leaflet-control-layers {
 	display: none;
 }
+
+.leaflet-control-zoom-in {
+	line-height: 1.3;
+}
+
+.leaflet-control-zoom-out {
+	line-height: 1.1;
+}

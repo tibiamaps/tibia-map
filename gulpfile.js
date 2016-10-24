@@ -12,10 +12,10 @@ const server = require('gulp-webserver');
 const uglify = require('gulp-uglify');
 
 gulp.task('clean', function() {
-	del('dist');
+	return del('dist/*');
 });
 
-gulp.task('html', function() {
+gulp.task('html', ['clean'], function() {
 	gulp.src([
 		'src/index.html',
 		'src/small.html',
