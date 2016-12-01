@@ -155,11 +155,19 @@
 		});
 	};
 	TibiaMap.prototype._createMapFloorLayer = function(floor) {
-		var mapLayer = this.mapFloors[floor] = new L.GridLayer();
+		var mapLayer = this.mapFloors[floor] = new L.GridLayer({ floor: floor });
 		var map = this.map;
 		var _this = this;
-		mapLayer._getTileSize = function() {
-			return L.CRS.CustomZoom.scale(map.getZoom())
+		mapLayer.getTileSize = function() {
+	    var tileSize = L.GridLayer.prototype.getTileSize.call(this);
+	    var zoom = this._tileZoom;
+
+	    // increase tile size when scaling above maxNativeZoom
+	    if (zoom > 0) {
+	      return tileSize.divideBy(this._map.getZoomScale(0, zoom)).round();
+	    }
+
+	    return tileSize;
 		};
 		mapLayer._setZoomTransform = function(level, center, zoom) {
 			var coords = getUrlPosition();
@@ -176,7 +184,7 @@
 			tile.width = tile.height = 256;
 			var ctx = tile.getContext('2d');
 			var data = ctx.createImageData(256, 256);
-			_this._createMapImageData(data, coords.x, coords.y, floor, function(image) {
+			_this._createMapImageData(data, coords.x, coords.y, this.options.floor, function(image) {
 				ctx.putImageData(image, 0, 0);
 				ctx.imageSmoothingEnabled = false;
 				done(null, tile);
@@ -280,12 +288,7 @@
 			map.panTo(map.unproject([current.x, current.y], 0));
 		});
 		map.on('baselayerchange', function(layer) {
-			for (var floorID = 0; floorID <= 15; floorID++) {
-				if (_this.mapFloors[floorID]._leaflet_id == layer._leaflet_id) {
-					_this.floor = floorID;
-					break;
-				}
-			};
+			_this.floor = layer.layer.options.floor;
 		});
 		map.on('click', function(event) {
 			var coords = L.CRS.CustomZoom.latLngToPoint(event.latlng, 0);
@@ -298,15 +301,6 @@
 				'floor': _this.floor,
 				'zoom': zoom
 			}, true);
-		});
-		// Workaround for https://github.com/tibiamaps/tibia-map/issues/2.
-		// TODO: Remove this after updating Leaflet.
-		map.on('dblclick', function() {
-			if (map.getZoom() == 4) {
-				map.doubleClickZoom.disable();
-			} else {
-				map.doubleClickZoom.enable();
-			}
 		});
 		L.crosshairs().addTo(map);
 		L.control.coordinates({
