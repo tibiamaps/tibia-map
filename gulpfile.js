@@ -33,7 +33,7 @@ gulp.task('html', ['clean'], function() {
 
 gulp.task('css', function() {
 	gulp.src([
-		'src/_css/leaflet.css',
+		require.resolve('leaflet/dist/leaflet.css'),
 		'src/_css/leaflet.coordinates.css',
 		'src/_css/leaflet.levelbuttons.css',
 		'node_modules/leaflet-fullscreen/dist/leaflet.fullscreen.css',
@@ -47,7 +47,7 @@ gulp.task('css', function() {
 
 gulp.task('js', function() {
 	gulp.src([
-		'src/_js/leaflet.js',
+		require.resolve('leaflet'),
 		'src/_js/leaflet.coordinates.js',
 		'src/_js/leaflet.crosshairs.js',
 		'src/_js/leaflet.levelbuttons.js',
