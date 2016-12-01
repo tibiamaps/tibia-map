@@ -1,6 +1,7 @@
 {
   "private": true,
   "dependencies": {
+    "leaflet": "^1.0.2",
     "leaflet-fullscreen": "^1.0.1"
   },
   "devDependencies": {
