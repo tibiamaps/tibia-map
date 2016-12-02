@@ -5,6 +5,7 @@
 		this.mapFloors = [];
 		this.mapDataStore = [];
 		this.waypoints = [];
+		this.drawGroundLayer = false;
 	}
 	var URL_PREFIX = 'https://tibiamaps.github.io/tibia-map-data/mapper/';
 	// `KNOWN_TILES` is a placeholder for the whitelist of known tiles:
@@ -113,7 +114,7 @@
 		var dataStore = this.mapDataStore;
 		if (dataStore[mapName]) {
 			window.requestAnimationFrame(function() {
-				callback(dataStore[mapName]);
+				callback(dataStore[mapName], x, y, z);
 			});
 		} else {
 			// Only fetch the map file if it’s in the whitelist, or if the whitelist
@@ -130,44 +131,93 @@
 						mapData = EMPTY_MAP_DATA;
 					}
 					dataStore[mapName] = mapData;
-					callback(mapData);
+					callback(mapData, x, y, z);
 				};
 				xhr.send();
 			}
 		}
 	};
-	TibiaMap.prototype._createMapImageData = function(imageData, baseX, baseY, baseZ, callback) {
-		this._getMapData(baseX, baseY, baseZ, function(mapData) {
-			var index = 0;
-			for (var x = 0; x < 256; x++) {
-				for (var y = 0; y < 256; y++) {
-					var data = mapData[index];
-					var color = MAP_COLORS[data] || BLANK_COLOR;
-					var base = (y * imageData.width + x) * 4;
-					imageData.data[base + 0] = color.r;
-					imageData.data[base + 1] = color.g;
-					imageData.data[base + 2] = color.b;
-					imageData.data[base + 3] = 255;
-					++index;
-				}
-			}
-			callback(imageData);
-		});
+	TibiaMap.prototype._paintMaps = function(ctx, mapsData, callback) {
+	  var imageData = ctx.createImageData(256, 256);
+	  var mapsCount = mapsData.length;
+
+	  var levelMap = mapsData[0];
+	  var groundMap = mapsCount > 1 ? mapsData[1] : [];
+
+	  var index = 0;
+	  for (var x = 0; x < 256; x += 1) {
+	    for (var y = 0; y < 256; y += 1) {
+	      var base = ((y * imageData.width) + x) * 4;
+
+	      var data = levelMap[index];
+	      var color;
+	      if (data === 0 && mapsCount > 1) {
+	        // lets get the color from the level ground
+	        var groundData = groundMap[index];
+	        color = MAP_COLORS[groundData] || BLANK_COLOR;
+
+	        // make it darker, if it's a map color
+	        if (groundData !== 0) {
+	          var grayScale = (((color.r * 11) + (color.g * 16) + (color.b * 5)) / 32);
+	          if (grayScale >= 30) {
+	            grayScale -= 30;
+	          }
+
+	          color = { r: grayScale, g: grayScale, b: grayScale };
+	        }
+	      } else {
+	        color = MAP_COLORS[data] || BLANK_COLOR;
+	      }
+
+	      imageData.data[base + 0] = color.r;
+	      imageData.data[base + 1] = color.g;
+	      imageData.data[base + 2] = color.b;
+	      imageData.data[base + 3] = 255;
+	      index += 1;
+	    }
+	  }
+
+	  callback(imageData);
+	};
+	TibiaMap.prototype._createMapImageData = function(ctx, baseX, baseY, baseZ, callback) {
+    var mapData = [];
+    var mapsToDownload = [baseZ];
+    var mapsCount = 1;
+    var _this = this;
+
+    if (baseZ !== 7 && this.drawGroundLayer) {
+      mapsToDownload.push(7);
+      mapsCount += 1;
+    }
+
+    var mapsDownloaded = 0;
+    var afterDownloadMap = function(data, x, y, z) {
+      mapsDownloaded += 1;
+      mapData[mapsToDownload.indexOf(z)] = data;
+
+      if (mapsDownloaded >= mapsCount) {
+        _this._paintMaps(ctx, mapData, callback);
+      }
+    };
+
+    for (var i = 0; i < mapsCount; i += 1) {
+      this._getMapData(baseX, baseY, mapsToDownload[i], afterDownloadMap);
+    }
 	};
 	TibiaMap.prototype._createMapFloorLayer = function(floor) {
-		var mapLayer = this.mapFloors[floor] = new L.GridLayer({
-			'floor': floor
-		});
+		var mapLayer = this.mapFloors[floor] = new L.GridLayer({ floor: floor, drawGroundLayer: this.drawGroundLayer });
 		var map = this.map;
 		var _this = this;
 		mapLayer.getTileSize = function() {
-			var tileSize = L.GridLayer.prototype.getTileSize.call(this);
-			var zoom = this._tileZoom;
-			// Increase tile size when scaling above `maxNativeZoom`.
-			if (zoom > 0) {
-				return tileSize.divideBy(this._map.getZoomScale(0, zoom)).round();
-			}
-			return tileSize;
+	    var tileSize = L.GridLayer.prototype.getTileSize.call(this);
+	    var zoom = this._tileZoom;
+
+	    // increase tile size when scaling above maxNativeZoom
+	    if (zoom > 0) {
+	      return tileSize.divideBy(this._map.getZoomScale(0, zoom)).round();
+	    }
+
+	    return tileSize;
 		};
 		mapLayer._setZoomTransform = function(level, center, zoom) {
 			var coords = getUrlPosition();
@@ -183,8 +233,7 @@
 			var tile = document.createElement('canvas');
 			tile.width = tile.height = 256;
 			var ctx = tile.getContext('2d');
-			var data = ctx.createImageData(256, 256);
-			_this._createMapImageData(data, coords.x, coords.y, this.options.floor, function(image) {
+			_this._createMapImageData(ctx, coords.x, coords.y, this.options.floor, function(image) {
 				ctx.putImageData(image, 0, 0);
 				ctx.imageSmoothingEnabled = false;
 				done(null, tile);
@@ -193,6 +242,17 @@
 		};
 		return mapLayer;
 	};
+	TibiaMap.prototype.setDrawGroundLayer = function(value) {
+		if (value === this.drawGroundLayer) {
+			return;
+		}
+		
+		this.drawGroundLayer = value;
+		for (var i = 0; i <= 15; i++) {
+			this.mapFloors[i].options.drawGroundLayer = value;
+			this.mapFloors[i].redraw();
+		}
+	}
 	TibiaMap.prototype._showHoverTile = function() {
 		var map = this.map;
 		var _this = this;
