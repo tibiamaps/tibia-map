@@ -22,27 +22,6 @@
 		xhr.send();
 	};
 	fetchKnownTiles();
-	// https://github.com/tibiamaps/tibia-maps-script/blob/master/src/colors.js
-	var MAP_COLORS = {
-		0x00: { r: 0, g: 0, b: 0 }, // black (empty)
-		0x0C: { r: 0, g: 102, b: 0 }, // dark green (trees)
-		0x18: { r: 0, g: 204, b: 0 }, // green (grass)
-		0x1E: { r: 0, g: 255, b: 0 }, // light green (old swamp)
-		0x33: { r: 51, g: 102, b: 153 }, // light blue (water)
-		0x56: { r: 102, g: 102, b: 102 }, // dark gray (stone/mountains)
-		0x72: { r: 153, g: 51, b: 0 }, // dark brown (earth/stalagmites)
-		0x79: { r: 153, g: 102, b: 51 }, // brown (earth)
-		0x81: { r: 153, g: 153, b: 153 }, // gray (floor)
-		0x8C: { r: 153, g: 255, b: 102 }, // light green (light spots in grassy areas)
-		0xB3: { r: 204, g: 255, b: 255 }, // light blue (ice)
-		0xBA: { r: 255, g: 51, b: 0 }, // red (city/walls)
-		0xC0: { r: 255, g: 102, b: 0 }, // orange (lava)
-		0xCF: { r: 255, g: 204, b: 153 }, // beige (sand)
-		0xD2: { r: 255, g: 255, b: 0 }, // yellow (ladders/holes/…)
-		0xD7: { r: 255, g: 255, b: 255 } // white (snow / target?)
-	};
-	var BLANK_COLOR = MAP_COLORS[0x00];
-	var EMPTY_MAP_DATA = new Uint8Array(new ArrayBuffer(256 * 256));
 	var isEmbed = location.pathname.indexOf('/embed') != -1;
 	var padNumber = function(number, size) {
 		var s = '000' + String(number);
@@ -108,52 +87,6 @@
 			}
 		});
 	};
-	TibiaMap.prototype._getMapData = function(x, y, z, callback) {
-		var mapName = padNumber(x, 3) + padNumber(y, 3) + padNumber(z, 2);
-		var dataStore = this.mapDataStore;
-		if (dataStore[mapName]) {
-			window.requestAnimationFrame(function() {
-				callback(dataStore[mapName]);
-			});
-		} else {
-			// Only fetch the map file if it’s in the whitelist, or if the whitelist
-			// has not finished loading yet.
-			if (!KNOWN_TILES || KNOWN_TILES.has(mapName)) {
-				var xhr = new XMLHttpRequest();
-				xhr.open('GET', URL_PREFIX + mapName + '.map', true);
-				xhr.responseType = 'arraybuffer';
-				xhr.onload = function(exception) {
-					var mapData;
-					if (this.status == 200) {
-						mapData = new Uint8Array(this.response);
-					} else {
-						mapData = EMPTY_MAP_DATA;
-					}
-					dataStore[mapName] = mapData;
-					callback(mapData);
-				};
-				xhr.send();
-			}
-		}
-	};
-	TibiaMap.prototype._createMapImageData = function(imageData, baseX, baseY, baseZ, callback) {
-		this._getMapData(baseX, baseY, baseZ, function(mapData) {
-			var index = 0;
-			for (var x = 0; x < 256; x++) {
-				for (var y = 0; y < 256; y++) {
-					var data = mapData[index];
-					var color = MAP_COLORS[data] || BLANK_COLOR;
-					var base = (y * imageData.width + x) * 4;
-					imageData.data[base + 0] = color.r;
-					imageData.data[base + 1] = color.g;
-					imageData.data[base + 2] = color.b;
-					imageData.data[base + 3] = 255;
-					++index;
-				}
-			}
-			callback(imageData);
-		});
-	};
 	TibiaMap.prototype._createMapFloorLayer = function(floor) {
 		var mapLayer = this.mapFloors[floor] = new L.GridLayer({
 			'floor': floor
@@ -181,14 +114,23 @@
 		};
 		mapLayer.createTile = function(coords, done) {
 			var tile = document.createElement('canvas');
-			tile.width = tile.height = 256;
 			var ctx = tile.getContext('2d');
-			var data = ctx.createImageData(256, 256);
-			_this._createMapImageData(data, coords.x, coords.y, this.options.floor, function(image) {
-				ctx.putImageData(image, 0, 0);
-				ctx.imageSmoothingEnabled = false;
+			tile.width = tile.height = 256;
+			var tileId = (coords.x * 256) + '_' + (coords.y * 256) + '_' + this.options.floor;
+			// Only fetch the map file if it’s in the whitelist, or if the whitelist
+			// has not finished loading yet.
+			if (KNOWN_TILES && !KNOWN_TILES.has(tileId)) {
+				ctx.fillStyle = '#000';
+				ctx.fillRect(0, 0, 256, 256);
+				return tile;
+			}
+			ctx.imageSmoothingEnabled = false;
+			var image = new Image();
+			image.onload = function() {
+				ctx.drawImage(image, 0, 0, 256, 256);
 				done(null, tile);
-			});
+			};
+			image.src = URL_PREFIX + 'Minimap_Color_' + tileId + '.png';
 			return tile;
 		};
 		return mapLayer;
@@ -224,7 +166,7 @@
 		modifyLeaflet();
 		// Taken from https://tibiamaps.github.io/tibia-map-data/bounds.json, which
 		// rarely (if ever) changes.
-		var bounds = { 'xMin': 124, 'xMax': 131, 'yMin': 121, 'yMax': 128 };
+		var bounds = { 'xMin': 124, 'xMax': 132, 'yMin': 121, 'yMax': 128 };
 		var xPadding = window.innerWidth / 256 / 2;
 		var yPadding = window.innerHeight / 256 / 2;
 		var yMin = bounds.yMin - yPadding;
