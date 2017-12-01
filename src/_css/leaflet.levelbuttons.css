@@ -5,3 +5,11 @@
 .leaflet-control-level-buttons-panel-a {
 	line-height: 1.8;
 }
+
+.leaflet-control-level-buttons-span {
+	font-size: 18px;
+	background-color: #fff;
+	display: block;
+	text-align: center;
+	border-bottom: 1px solid #ccc;
+}
