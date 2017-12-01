@@ -58,7 +58,7 @@ L.LevelButtons = L.Control.extend({
 	},
 	_setFloor: function(floor) {
 		var floor_button = L.DomUtil.get('floor_button');
-		floor_button.textContent = floor < 10 ? "0" + floor.toString() : floor.toString();
+		floor_button.textContent = String(floor).padStart(2, '0');
 	}
 });
 
