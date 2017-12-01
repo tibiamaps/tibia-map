@@ -14,6 +14,11 @@ L.LevelButtons = L.Control.extend({
 		L.DomEvent.disableClickPropagation(up_button);
 		plugin_container.appendChild(up_button);
 
+		var floor_button = L.DomUtil.create('span', 'leaflet-control-level-buttons-span', plugin_container);
+		floor_button.id = 'floor_button';
+
+		plugin_container.appendChild(floor_button);
+
 		var down_button = L.DomUtil.create('a', 'leaflet-control-level-buttons-a', plugin_container);
 		down_button.textContent = '\u25BC';
 		down_button.href = '#';
@@ -26,8 +31,10 @@ L.LevelButtons = L.Control.extend({
 	onRemove: function() {},
 	_onUpButton: function(event) {
 		var upper_floor_index = this._tibia_map_obj.floor - 1;
+
 		if (upper_floor_index >= 0) {
 			this._bringToFront(upper_floor_index);
+			this._setFloor(upper_floor_index);
 		}
 		event.preventDefault();
 	},
@@ -35,15 +42,23 @@ L.LevelButtons = L.Control.extend({
 		var lower_floor_index = this._tibia_map_obj.floor + 1;
 		if (lower_floor_index <= 15) {
 			this._bringToFront(lower_floor_index);
+			this._setFloor(lower_floor_index);
 		}
+
 		event.preventDefault();
 	},
 	setTibiaMap: function(tibia_map_obj) {
 		this._tibia_map_obj = tibia_map_obj;
+		var floor_button = L.DomUtil.get('floor_button');
+		this._setFloor(this._tibia_map_obj.floor);
 	},
 	_bringToFront: function(layer_index) {
 		// Simulate a click on the chosen option.
 		this.options.layers_widget._form[layer_index].click();
+	},
+	_setFloor: function(floor) {
+		var floor_button = L.DomUtil.get('floor_button');
+		floor_button.textContent = floor < 10 ? "0" + floor.toString() : floor.toString();
 	}
 });
 
