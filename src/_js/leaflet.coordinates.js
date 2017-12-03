@@ -98,17 +98,17 @@ L.Control.Coordinates = L.Control.extend({
 		var x;
 		var y;
 		if (opts.labelFormatterLng) {
-			x = opts.labelFormatterLng(ll.lng);
+			x = opts.labelFormatterLng(ll.x);
 		} else {
 			x = L.Util.template(opts.labelTemplateLng, {
-				'x': this._getNumber(ll.lng, opts)
+				'x': this._getNumber(ll.x, opts)
 			});
 		}
 		if (opts.labelFormatterLat) {
-			y = opts.labelFormatterLat(ll.lat);
+			y = opts.labelFormatterLat(ll.y);
 		} else {
 			y = L.Util.template(opts.labelTemplateLat, {
-				'y': this._getNumber(ll.lat, opts)
+				'y': this._getNumber(ll.y, opts)
 			});
 		}
 		if (opts.useLatLngOrder) {
@@ -163,6 +163,7 @@ L.Control.Coordinates = L.Control.extend({
 		map.off('mousemove', this._update, this);
 	},
 	'_update': function(event) {
+
 		var pos = event.latlng;
 		var opts = this.options;
 		if (pos) {
@@ -170,7 +171,9 @@ L.Control.Coordinates = L.Control.extend({
 			this._currentPos = pos;
 			this._inputY.value = L.NumberFormatter.round(pos.lat, opts.decimals, opts.decimalSeperator);
 			this._inputX.value = L.NumberFormatter.round(pos.lng, opts.decimals, opts.decimalSeperator);
-			this._label.innerHTML = this._createCoordinateLabel(pos);
+			this._label.innerHTML = this._createCoordinateLabel(
+				this._map.project(event.latlng, 0)
+			);
 		}
 	}
 });

@@ -249,12 +249,10 @@
 			'position': 'bottomleft',
 			'enableUserInput': false,
 			'labelFormatterLat': function(lat) {
-				var coordX = Math.floor(Math.abs(lat * 256));
-				return '<b>Y</b>: ' + coordX + ' <b>Z</b>: ' + _this.floor;
+				return '<b>Y</b>: ' + lat + ' <b>Z</b>: ' + _this.floor;
 			},
 			'labelFormatterLng': function(lng) {
-				var coordY = Math.floor(Math.abs(lng * 256));
-				return '<b>X</b>: ' + coordY;
+				return '<b>X</b>: ' + lng;
 			}
 		}).addTo(map);
 		L.LevelButtons.btns = L.levelButtons({
