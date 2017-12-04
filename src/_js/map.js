@@ -78,6 +78,9 @@
 			'latLngToPoint': function(latlng, zoom) {
 				var projectedPoint = this.projection.project(latlng);
 				var scale = this.scale(zoom);
+				var value = this.transformation._transform(projectedPoint, scale);
+				console.log(value);
+				return value;
 				return this.transformation._transform(projectedPoint, scale);
 			},
 			'pointToLatLng': function(point, zoom) {
@@ -116,7 +119,17 @@
 			var tile = document.createElement('canvas');
 			var ctx = tile.getContext('2d');
 			tile.width = tile.height = 256;
+
+			latlng = {lat: coords.x, lng: coords.y};
+			latlng = {lng: coords.x, lat: coords.y};
+			latlng1 = this._map.project(latlng, 0);
+			// debugger;
+			Object.keys(latlng1).map(function(key, index) { latlng1[key] = Math.abs(latlng1[key]); });
+			console.log(latlng1.x === coords.x * 256);
+			console.log(latlng1.y === coords.y* 256);
+			console.log(latlng1.y, coords.y * 256);
 			var tileId = (coords.x * 256) + '_' + (coords.y * 256) + '_' + this.options.floor;
+			var tileId = (latlng1.x) + '_' + (latlng1.y) + '_' + this.options.floor;
 			// Only fetch the map file if it’s in the whitelist, or if the whitelist
 			// has not finished loading yet.
 			if (KNOWN_TILES && !KNOWN_TILES.has(tileId)) {
@@ -149,6 +162,7 @@
 			var x = Math.floor(pos.x);
 			var y = Math.floor(pos.y);
 			var bounds = [map.unproject([x, y], 0), map.unproject([x + 1, y + 1], 0)];
+			var bounds1 = [map.project([x, y], 0), map.project([x + 1, y + 1], 0)];
 			if (!_this.hoverTile) {
 				_this.hoverTile = L.rectangle(bounds, {
 					'color': '#009eff',
