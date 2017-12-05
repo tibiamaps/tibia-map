@@ -7,6 +7,7 @@
 		this.waypoints = [];
 		this.markers = {};
 		this.layer_marker = null;
+		this.custom_icons = {};
 	}
 	var URL_PREFIX = 'https://tibiamaps.github.io/tibia-map-data/mapper/';
 	// `KNOWN_TILES` is a placeholder for the whitelist of known tiles:
@@ -59,6 +60,48 @@
 		}
 		return position;
 	};
+
+	var createCustomIcons = function(){
+		// http://tibia.wikia.com/wiki/File:Minimap_Symbols_Guide.png
+		// http://tibia.wikia.com/wiki/Template:Map_Marker
+		var symbols = [
+			{id:1, file: 'green_tick.png'},
+			{id:2, file: 'arrow_shovel.png'},
+			{id:3, file: 'blue_question_mark.png'},
+			{id:4, file: 'sword.png'},
+			{id:5, file: 'red_exclamation_mark.png'},
+			{id:6, file: 'blue_flag.png'},
+			{id:7, file: 'orange_star.png'},
+			{id:8, file: 'yellow_lock.png'},
+			{id:9, file: 'red_cross.png'},
+			{id:10, file: 'brown_bag.png'},
+			{id:11, file: 'brown_plus.png'},
+			{id:12, file: 'white_skull.png'},
+			{id:13, file: 'lips.png'},
+			{id:14, file: 'money.png'},
+			{id:15, file: 'red_arrow_up.png'},
+			{id:16, file: 'red_arrow_down.png'},
+			{id:17, file: 'red_arrow_right.png'},
+			{id:18, file: 'red_arrow_left.png'},
+			{id:19, file: 'green_arrow_up.png'},
+			{id:20, file: 'green_arrow_down.png'},
+			{id:21, file: 'number.png'},
+			{id:20, file: 'blank.png'}
+		];
+		var icons = {};
+
+		var CustomIcon = L.Icon.extend({
+			options: {
+				iconSize: [20, 20],
+			}
+		});
+		function create_custom_icon(element, index, array){
+			var url = 'images/markers/'+element.file;
+			icons[element.id] = new CustomIcon({iconUrl: url})
+		}
+		symbols.forEach(create_custom_icon);
+		return icons;
+	}
 
 	var getUrlMarkers = function(){
 		_MARKERS = 2;
@@ -187,6 +230,7 @@
 		function createMarker(marker){
 			var _X = 0;
 			var _Y = 1;
+			var _ICON = 3;
 			var _TITLE = 4;
 			var _ZOOM = 0;
 
@@ -194,8 +238,12 @@
 			if(marker[_TITLE])
 				title = marker[_TITLE];
 
+			var custom_icon = 1;
+			if(marker[_ICON])
+				custom_icon = marker[_ICON];
+
 			var marker = L.marker(
-				this_.map.unproject([marker[_X], marker[_Y]], _ZOOM), {'title':title}
+				this_.map.unproject([marker[_X], marker[_Y]], _ZOOM), {icon:this_.custom_icons[custom_icon], 'title':title}
 			);
 			this_.layer_marker.addLayer(marker);
 		}
@@ -312,6 +360,7 @@
 		}).addTo(map);
 		_this._showHoverTile();
 
+		_this.custom_icons = createCustomIcons();
 		_this._createMapFloorMakers(current.floor);
 	};
 
