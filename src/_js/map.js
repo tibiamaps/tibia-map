@@ -36,6 +36,7 @@
 			window.history.pushState(null, null, url);
 		}
 	};
+	TibiaMap.prototype.setUrlPosition = setUrlPosition;
 	var getUrlPosition = function() {
 		var position = {
 			'x': 32368,
@@ -57,6 +58,7 @@
 		}
 		return position;
 	};
+	TibiaMap.prototype.getUrlPosition = getUrlPosition;
 	var modifyLeaflet = function() {
 		L.CRS.CustomZoom = L.extend({}, L.CRS.Simple, {
 			'scale': function(zoom) {
@@ -105,7 +107,7 @@
 		mapLayer._setZoomTransform = function(level, center, zoom) {
 			var coords = getUrlPosition();
 			coords.zoom = zoom;
-			setUrlPosition(coords, false);
+			setUrlPosition(coords, true);
 			var scale = this._map.getZoomScale(zoom, level.zoom);
 			var translate = level.origin.multiplyBy(scale).subtract(
 				this._map._getNewPixelOrigin(center, zoom)
