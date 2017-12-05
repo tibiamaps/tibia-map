@@ -118,7 +118,12 @@
 			var tile = document.createElement('canvas');
 			var ctx = tile.getContext('2d');
 			tile.width = tile.height = 256;
-			var tileId = (coords.x * 256) + '_' + (coords.y * 256) + '_' + this.options.floor;
+
+			latlng = {lng: coords.x, lat: coords.y};
+			latlng = this._map.project(latlng, 0);
+			Object.keys(latlng).map(function(key, _) { latlng[key] = Math.abs(latlng[key]); });
+
+			var tileId = (latlng.x) + '_' + (latlng.y) + '_' + this.options.floor;
 			// Only fetch the map file if it’s in the whitelist, or if the whitelist
 			// has not finished loading yet.
 			if (KNOWN_TILES && !KNOWN_TILES.has(tileId)) {
@@ -151,6 +156,7 @@
 			var x = Math.floor(pos.x);
 			var y = Math.floor(pos.y);
 			var bounds = [map.unproject([x, y], 0), map.unproject([x + 1, y + 1], 0)];
+			var bounds1 = [map.project([x, y], 0), map.project([x + 1, y + 1], 0)];
 			if (!_this.hoverTile) {
 				_this.hoverTile = L.rectangle(bounds, {
 					'color': '#009eff',
@@ -251,12 +257,10 @@
 			'position': 'bottomleft',
 			'enableUserInput': false,
 			'labelFormatterLat': function(lat) {
-				var coordX = Math.floor(Math.abs(lat * 256));
-				return '<b>Y</b>: ' + coordX + ' <b>Z</b>: ' + _this.floor;
+				return '<b>Y</b>: ' + lat + ' <b>Z</b>: ' + _this.floor;
 			},
 			'labelFormatterLng': function(lng) {
-				var coordY = Math.floor(Math.abs(lng * 256));
-				return '<b>X</b>: ' + coordY;
+				return '<b>X</b>: ' + lng;
 			}
 		}).addTo(map);
 		L.LevelButtons.btns = L.levelButtons({
