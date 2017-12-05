@@ -96,7 +96,7 @@
 			}
 		});
 		function create_custom_icon(element, index, array){
-			var url = 'images/markers/'+element.file;
+			var url = 'images/markers/' + element.file;
 			icons[element.id] = new CustomIcon({iconUrl: url})
 		}
 		symbols.forEach(create_custom_icon);
@@ -104,8 +104,8 @@
 	}
 
 	var getUrlMarkers = function(){
-		_MARKERS = 2;
-		var parts = window.location.hash.slice(1).split(':');
+		_MARKERS = 1;
+		var parts = window.location.hash.slice(1).split('&markers=');
 
 		if(parts[_MARKERS]){
 			return JSON.parse(parts[_MARKERS]);
@@ -248,7 +248,7 @@
 			this_.layer_marker.addLayer(marker);
 		}
 
-		var markers = getUrlMarkers();
+		var markers = this.markers = getUrlMarkers();
 
 		if(this.layer_marker !== null){
 			this.map.removeLayer(this.layer_marker);
