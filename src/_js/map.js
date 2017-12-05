@@ -5,6 +5,8 @@
 		this.mapFloors = [];
 		this.mapDataStore = [];
 		this.waypoints = [];
+		this.markers = {};
+		this.layer_marker = null;
 	}
 	var URL_PREFIX = 'https://tibiamaps.github.io/tibia-map-data/mapper/';
 	// `KNOWN_TILES` is a placeholder for the whitelist of known tiles:
@@ -161,6 +163,23 @@
 			}
 		});
 	};
+	TibiaMap.prototype._createMapFloorMakers = function(floor){
+		if(this.layer_marker !== null){
+			this.map.removeLayer(this.layer_marker);
+		}
+
+		if(floor % 2 == 0){
+
+			this.layer_marker = new L.layerGroup();
+
+			var marker = L.marker(
+				this.map.unproject([32371, 32200], 0)
+			);
+			this.layer_marker.addLayer(marker);
+
+			this.map.addLayer(this.layer_marker);
+		}
+	};
 	TibiaMap.prototype.init = function() {
 		var _this = this;
 		modifyLeaflet();
@@ -261,6 +280,8 @@
 			'layers_widget': layers_widget
 		}).addTo(map);
 		_this._showHoverTile();
+
+		_this._createMapFloorMakers(current.floor);
 	};
 
 	var map = new TibiaMap();
