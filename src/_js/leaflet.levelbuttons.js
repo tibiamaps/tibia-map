@@ -62,7 +62,7 @@ L.LevelButtons = L.Control.extend({
 		var floor_button = L.DomUtil.get('floor_button');
 		floor_button.textContent = String(floor).padStart(2, '0');
 	},
-	_updateUrl: function(floor){
+	_updateUrl: function(floor) {
 		var coordinates = this._tibia_map_obj.getUrlPosition();
 		coordinates.floor = floor;
 		this._tibia_map_obj.setUrlPosition(coordinates, true);
