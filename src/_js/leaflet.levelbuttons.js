@@ -44,6 +44,7 @@ L.LevelButtons = L.Control.extend({
 		if (lower_floor_index <= 15) {
 			this._bringToFront(lower_floor_index);
 			this._setFloor(lower_floor_index);
+			this._tibia_map_obj._createMapFloorMakers(lower_floor_index);
 		}
 
 		event.preventDefault();

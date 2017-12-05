@@ -59,6 +59,19 @@
 		}
 		return position;
 	};
+
+	var getUrlMarkers = function(){
+		_MARKERS = 2;
+		var parts = window.location.hash.slice(1).split(':');
+
+		if(parts[_MARKERS]){
+			return JSON.parse(parts[_MARKERS]);
+		}else{
+			return [];
+		}
+
+	};
+
 	var modifyLeaflet = function() {
 		L.CRS.CustomZoom = L.extend({}, L.CRS.Simple, {
 			'scale': function(zoom) {
@@ -164,21 +177,38 @@
 		});
 	};
 	TibiaMap.prototype._createMapFloorMakers = function(floor){
+		var this_ = this;
+
+		function isSameFloor(marker) {
+			var _FLOOR = 2;
+			return marker[_FLOOR] === floor;
+		}
+
+		function createMarker(marker){
+			var _X = 0;
+			var _Y = 1;
+			var _TITLE = 4;
+			var _ZOOM = 0;
+
+			var title = ''
+			if(marker[_TITLE])
+				title = marker[_TITLE];
+
+			var marker = L.marker(
+				this_.map.unproject([marker[_X], marker[_Y]], _ZOOM), {'title':title}
+			);
+			this_.layer_marker.addLayer(marker);
+		}
+
+		var markers = getUrlMarkers();
+
 		if(this.layer_marker !== null){
 			this.map.removeLayer(this.layer_marker);
 		}
 
-		if(floor % 2 == 0){
-
-			this.layer_marker = new L.layerGroup();
-
-			var marker = L.marker(
-				this.map.unproject([32371, 32200], 0)
-			);
-			this.layer_marker.addLayer(marker);
-
-			this.map.addLayer(this.layer_marker);
-		}
+		this.layer_marker = new L.layerGroup();
+		markers.filter(isSameFloor).forEach(createMarker);
+		this.map.addLayer(this.layer_marker);
 	};
 	TibiaMap.prototype.init = function() {
 		var _this = this;
@@ -234,6 +264,7 @@
 		};
 		var layers_widget = L.control.layers(baseMaps, {}).addTo(map);
 		var current = getUrlPosition();
+
 		_this.floor = current.floor;
 		map.setView(map.unproject([current.x, current.y], 0), current.zoom);
 		_this.mapFloors[current.floor].addTo(map);
