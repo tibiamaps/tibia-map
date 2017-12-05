@@ -107,7 +107,7 @@
 		mapLayer._setZoomTransform = function(level, center, zoom) {
 			var coords = getUrlPosition();
 			coords.zoom = zoom;
-			setUrlPosition(coords, false);
+			setUrlPosition(coords, true);
 			var scale = this._map.getZoomScale(zoom, level.zoom);
 			var translate = level.origin.multiplyBy(scale).subtract(
 				this._map._getNewPixelOrigin(center, zoom)
