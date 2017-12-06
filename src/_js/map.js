@@ -64,31 +64,27 @@
 	};
 	TibiaMap.prototype.getUrlPosition = getUrlPosition;
 	var createCustomIcons = function(){
-		// http://tibia.wikia.com/wiki/File:Minimap_Symbols_Guide.png
-		// http://tibia.wikia.com/wiki/Template:Map_Marker
 		var symbols = [
-			{id:1, file: 'green_tick.png'},
-			{id:2, file: 'arrow_shovel.png'},
-			{id:3, file: 'blue_question_mark.png'},
-			{id:4, file: 'sword.png'},
-			{id:5, file: 'red_exclamation_mark.png'},
-			{id:6, file: 'blue_flag.png'},
-			{id:7, file: 'orange_star.png'},
-			{id:8, file: 'yellow_lock.png'},
-			{id:9, file: 'red_cross.png'},
-			{id:10, file: 'brown_bag.png'},
-			{id:11, file: 'brown_plus.png'},
-			{id:12, file: 'white_skull.png'},
-			{id:13, file: 'lips.png'},
-			{id:14, file: 'money.png'},
-			{id:15, file: 'red_arrow_up.png'},
-			{id:16, file: 'red_arrow_down.png'},
-			{id:17, file: 'red_arrow_right.png'},
-			{id:18, file: 'red_arrow_left.png'},
-			{id:19, file: 'green_arrow_up.png'},
-			{id:20, file: 'green_arrow_down.png'},
-			{id:21, file: 'number.png'},
-			{id:20, file: 'blank.png'}
+			{id:'0x00', file: 'green_tick.png'},
+			{id:'0x07', file: 'spear.png'},
+			{id:'0x01', file: 'blue_question_mark.png'},
+			{id:'0x08', file: 'sword.png'},
+			{id:'0x02', file: 'red_exclamation_mark.png'},
+			{id:'0x09', file: 'blue_flag.png'},
+			{id:'0x03', file: 'orange_star.png'},
+			{id:'0x0A', file: 'golden_lock.png'},
+			{id:'0x04', file: 'red_cross.png'},
+			{id:'0x0B', file: 'brown_bag.png'},
+			{id:'0x05', file: 'brown_plus.png'},
+			{id:'0x0C', file: 'white_skull.png'},
+			{id:'0x06', file: 'lips.png'},
+			{id:'0x0D', file: 'green_dollar_sign.png'},
+			{id:'0x0E', file: 'red_arrow_up.png'},
+			{id:'0x0F', file: 'red_arrow_down.png'},
+			{id:'0x10', file: 'red_arrow_right.png'},
+			{id:'0x11', file: 'red_arrow_left.png'},
+			{id:'0x12', file: 'green_arrow_up.png'},
+			{id:'0x13', file: 'green_arrow_down.png'}
 		];
 		var icons = {};
 
@@ -108,12 +104,13 @@
 	var getUrlMarkers = function(){
 		_MARKERS = 1;
 		var parts = window.location.hash.slice(1).split('&markers=');
-		if(parts[_MARKERS]){
-			return JSON.parse(parts[_MARKERS]);
-		}else{
-			return [];
-		}
 
+		if(parts[_MARKERS]){
+			try{
+				return JSON.parse(parts[_MARKERS]);
+			}catch(e){console.log('Error in your marker. Check it!'+e.message);};
+		}
+		return [];
 	};
 	TibiaMap.prototype.getUrlMarkers = getUrlMarkers;
 
@@ -223,25 +220,28 @@
 	};
 	TibiaMap.prototype._createMapFloorMakers = function(floor){
 		var this_ = this;
+		var _X = 0;
+		var _Y = 1;
+		var _FLOOR = 2;
+		var _ICON = 3;
+		var _TITLE = 4;
+		var _ZOOM = 0;
 
 		function isSameFloor(marker) {
-			var _FLOOR = 2;
 			return marker[_FLOOR] === floor;
 		}
 
-		function createMarker(marker){
-			var _X = 0;
-			var _Y = 1;
-			var _ICON = 3;
-			var _TITLE = 4;
-			var _ZOOM = 0;
+		function isValidate(marker){
+			return marker[_X] && marker[_Y] && marker[_FLOOR];
+		}
 
+		function createMarker(marker){
 			var title = ''
 			if(marker[_TITLE])
 				title = marker[_TITLE];
 
-			var custom_icon = 1;
-			if(marker[_ICON])
+			var custom_icon = "0x00";
+			if(marker[_ICON] && marker[_ICON] in this_.custom_icons)
 				custom_icon = marker[_ICON];
 
 			var marker = L.marker(
@@ -257,7 +257,7 @@
 		}
 
 		this.layer_marker = new L.layerGroup();
-		markers.filter(isSameFloor).forEach(createMarker);
+		markers.filter(isSameFloor).filter(isValidate).forEach(createMarker);
 		this.map.addLayer(this.layer_marker);
 	};
 	TibiaMap.prototype.init = function() {
