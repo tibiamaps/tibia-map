@@ -12,7 +12,7 @@ const server = require('gulp-webserver');
 const uglify = require('gulp-uglify');
 
 gulp.task('clean', function() {
-	return del('dist/*');
+	return del(['dist/**/*']);
 });
 
 gulp.task('html', ['clean'], function() {
@@ -70,7 +70,7 @@ gulp.task('img', function() {
 		.pipe(gulp.dest('./dist/'));
 });
 
-gulp.task('img-markers', function() {
+gulp.task('img-markers', ['clean'],function() {
 	gulp.src([
 		'src/images/markers/*.png'
 	])
