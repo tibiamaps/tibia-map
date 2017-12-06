@@ -3,7 +3,7 @@ L.LevelButtons = L.Control.extend({
 		'position': 'topleft',
 		'autoZIndex': true
 	},
-	onAdd: function(map){
+	onAdd: function(map) {
 		this._map = map;
 		var plugin_container = L.DomUtil.create('div', 'leaflet-control-level-buttons-panel leaflet-bar');
 
@@ -35,6 +35,7 @@ L.LevelButtons = L.Control.extend({
 		if (upper_floor_index >= 0) {
 			this._bringToFront(upper_floor_index);
 			this._setFloor(upper_floor_index);
+			this._updateUrl(upper_floor_index);
 			this._tibia_map_obj._createMapFloorMakers(upper_floor_index);
 		}
 		event.preventDefault();
@@ -44,6 +45,7 @@ L.LevelButtons = L.Control.extend({
 		if (lower_floor_index <= 15) {
 			this._bringToFront(lower_floor_index);
 			this._setFloor(lower_floor_index);
+			this._updateUrl(lower_floor_index);
 			this._tibia_map_obj._createMapFloorMakers(lower_floor_index);
 		}
 
@@ -61,6 +63,11 @@ L.LevelButtons = L.Control.extend({
 	_setFloor: function(floor) {
 		var floor_button = L.DomUtil.get('floor_button');
 		floor_button.textContent = String(floor).padStart(2, '0');
+	},
+	_updateUrl: function(floor) {
+		var coordinates = this._tibia_map_obj.getUrlPosition();
+		coordinates.floor = floor;
+		this._tibia_map_obj.setUrlPosition(coordinates, this._tibia_map_obj.getUrlMarkers(), true);
 	}
 });
 

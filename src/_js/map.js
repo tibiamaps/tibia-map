@@ -30,8 +30,9 @@
 		var s = '000' + String(number);
 		return s.substr(s.length - size);
 	};
-	var setUrlPosition = function(coords, forceHash) {
-		var url = '#' + coords.x + ',' + coords.y + ',' + coords.floor + ':' + coords.zoom;
+	var setUrlPosition = function(coords, markers, forceHash) {
+		var markers_str = "&markers=" + JSON.stringify(markers);
+		var url = '#' + coords.x + ',' + coords.y + ',' + coords.floor + ':' + coords.zoom + markers_str;
 		if (
 			forceHash &&
 			location.hash != url
@@ -39,6 +40,7 @@
 			window.history.pushState(null, null, url);
 		}
 	};
+	TibiaMap.prototype.setUrlPosition = setUrlPosition;
 	var getUrlPosition = function() {
 		var position = {
 			'x': 32368,
@@ -60,7 +62,7 @@
 		}
 		return position;
 	};
-
+	TibiaMap.prototype.getUrlPosition = getUrlPosition;
 	var createCustomIcons = function(){
 		// http://tibia.wikia.com/wiki/File:Minimap_Symbols_Guide.png
 		// http://tibia.wikia.com/wiki/Template:Map_Marker
@@ -106,7 +108,6 @@
 	var getUrlMarkers = function(){
 		_MARKERS = 1;
 		var parts = window.location.hash.slice(1).split('&markers=');
-
 		if(parts[_MARKERS]){
 			return JSON.parse(parts[_MARKERS]);
 		}else{
@@ -114,6 +115,7 @@
 		}
 
 	};
+	TibiaMap.prototype.getUrlMarkers = getUrlMarkers;
 
 	var modifyLeaflet = function() {
 		L.CRS.CustomZoom = L.extend({}, L.CRS.Simple, {
@@ -163,7 +165,7 @@
 		mapLayer._setZoomTransform = function(level, center, zoom) {
 			var coords = getUrlPosition();
 			coords.zoom = zoom;
-			setUrlPosition(coords, false);
+			setUrlPosition(coords, getUrlMarkers(), true);
 			var scale = this._map.getZoomScale(zoom, level.zoom);
 			var translate = level.origin.multiplyBy(scale).subtract(
 				this._map._getNewPixelOrigin(center, zoom)
@@ -340,7 +342,9 @@
 				'y': coordY,
 				'floor': _this.floor,
 				'zoom': zoom
-			}, true);
+			},
+			_this.markers,
+			true);
 		});
 		L.crosshairs().addTo(map);
 		L.control.coordinates({
