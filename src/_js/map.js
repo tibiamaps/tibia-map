@@ -42,6 +42,8 @@
 	};
 	TibiaMap.prototype.setUrlPosition = setUrlPosition;
 	var getUrlPosition = function() {
+		var _COORDINATES = 0;
+        var _ZOOM = 1;
 		var position = {
 			'x': 32368,
 			'y': 32198,
@@ -49,16 +51,19 @@
 			'zoom': 0
 		};
 		var parts = window.location.hash.slice(1).split(':');
-		if (parts[0]) {
-			var tempPos = parts[0].split(',');
+		if (parts[_COORDINATES]) {
+			var tempPos = parts[_COORDINATES].split(',');
+			var _X = 0;
+			var _Y = 1;
+			var _FLOOR = 2;
 			if (tempPos.length == 3) {
-				position.x = parseInt(tempPos[0], 10);
-				position.y = parseInt(tempPos[1], 10);
-				position.floor = parseInt(tempPos[2], 10);
+				position.x = parseInt(tempPos[_X], 10);
+				position.y = parseInt(tempPos[_Y], 10);
+				position.floor = parseInt(tempPos[_FLOOR], 10);
 			}
 		}
-		if (parts[1]) {
-			position.zoom = parseInt(parts[1], 10);
+		if (parts[_ZOOM]) {
+			position.zoom = parseInt(parts[_ZOOM], 10);
 		}
 		return position;
 	};
