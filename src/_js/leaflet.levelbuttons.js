@@ -8,6 +8,7 @@ L.LevelButtons = L.Control.extend({
 		var plugin_container = L.DomUtil.create('div', 'leaflet-control-level-buttons-panel leaflet-bar');
 
 		var up_button = L.DomUtil.create('a', 'leaflet-control-level-buttons-a', plugin_container);
+		up_button.id = 'up_button';
 		up_button.textContent = '\u25B2';
 		up_button.href = '#';
 		L.DomEvent.addListener(up_button, 'click', this._onUpButton, this);
@@ -20,6 +21,7 @@ L.LevelButtons = L.Control.extend({
 		plugin_container.appendChild(floor_button);
 
 		var down_button = L.DomUtil.create('a', 'leaflet-control-level-buttons-a', plugin_container);
+		down_button.id = 'down_button';
 		down_button.textContent = '\u25BC';
 		down_button.href = '#';
 		L.DomEvent.addListener(down_button, 'click', this._onDownButton, this);
@@ -31,20 +33,29 @@ L.LevelButtons = L.Control.extend({
 	onRemove: function() {},
 	_onUpButton: function(event) {
 		var upper_floor_index = this._tibia_map_obj.floor - 1;
-
+		var up_button = L.DomUtil.get('up_button');
+		var down_button = L.DomUtil.get('down_button');
 		if (upper_floor_index >= 0) {
 			this._bringToFront(upper_floor_index);
 			this._setFloor(upper_floor_index);
 			this._updateUrl(upper_floor_index);
+			L.DomUtil.setOpacity(down_button, 1);
+		}else{
+			L.DomUtil.setOpacity(up_button, 0);
 		}
 		event.preventDefault();
 	},
 	_onDownButton: function(event) {
 		var lower_floor_index = this._tibia_map_obj.floor + 1;
+		var up_button = L.DomUtil.get('up_button');
+		var down_button = L.DomUtil.get('down_button');
 		if (lower_floor_index <= 15) {
 			this._bringToFront(lower_floor_index);
 			this._setFloor(lower_floor_index);
 			this._updateUrl(lower_floor_index);
+			L.DomUtil.setOpacity(up_button, 1);
+		} else {
+			L.DomUtil.setOpacity(down_button, 0);
 		}
 
 		event.preventDefault();
@@ -60,7 +71,16 @@ L.LevelButtons = L.Control.extend({
 	},
 	_setFloor: function(floor) {
 		var floor_button = L.DomUtil.get('floor_button');
-		floor_button.textContent = String(floor).padStart(2, '0');
+		var ground_floor = 7; // 0 - sky // 15 - deep
+		
+		if (floor == ground_floor) {
+			floor_button.textContent = '0';
+		} else if (floor < ground_floor){
+			floor_button.textContent = String(ground_floor - floor).padStart(2, '+');
+		} else {
+			floor_button.textContent = String(floor - ground_floor).padStart(2, '-');
+		}
+		
 	},
 	_updateUrl: function(floor) {
 		var coordinates = this._tibia_map_obj.getUrlPosition();
