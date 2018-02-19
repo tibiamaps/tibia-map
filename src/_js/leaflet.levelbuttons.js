@@ -60,7 +60,18 @@ L.LevelButtons = L.Control.extend({
 	},
 	_setFloor: function(floor) {
 		var floor_button = L.DomUtil.get('floor_button');
-		floor_button.textContent = String(floor).padStart(2, '0');
+		var ground_floor = 7; // 0 - sky // 15 - deep
+		
+		if(floor == ground_floor) {
+			floor_button.textContent = "0";
+		}
+		else if (floor < ground_floor){
+			floor_button.textContent = String(ground_floor - floor).padStart(2, '+');
+		}
+		else {
+			floor_button.textContent = String(floor - ground_floor).padStart(2, '-');
+		}
+		
 	},
 	_updateUrl: function(floor) {
 		var coordinates = this._tibia_map_obj.getUrlPosition();
