@@ -54,7 +54,7 @@ L.LevelButtons = L.Control.extend({
 			this._setFloor(lower_floor_index);
 			this._updateUrl(lower_floor_index);
 			L.DomUtil.setOpacity(up_button, 1);
-		}else{
+		} else {
 			L.DomUtil.setOpacity(down_button, 0);
 		}
 
@@ -73,13 +73,11 @@ L.LevelButtons = L.Control.extend({
 		var floor_button = L.DomUtil.get('floor_button');
 		var ground_floor = 7; // 0 - sky // 15 - deep
 		
-		if(floor == ground_floor) {
-			floor_button.textContent = "0";
-		}
-		else if (floor < ground_floor){
+		if (floor == ground_floor) {
+			floor_button.textContent = '0';
+		} else if (floor < ground_floor){
 			floor_button.textContent = String(ground_floor - floor).padStart(2, '+');
-		}
-		else {
+		} else {
 			floor_button.textContent = String(floor - ground_floor).padStart(2, '-');
 		}
 		
