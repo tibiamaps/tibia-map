@@ -12,7 +12,7 @@ const server = require('gulp-webserver');
 const uglify = require('gulp-uglify');
 
 gulp.task('clean', function() {
-	return del('dist/*');
+	return del(['dist/**/*']);
 });
 
 gulp.task('html', ['clean'], function() {
@@ -70,6 +70,17 @@ gulp.task('img', function() {
 		.pipe(gulp.dest('./dist/'));
 });
 
+gulp.task('img-markers', ['clean'],function() {
+	gulp.src([
+		'src/images/markers/*.png'
+	])
+		//.pipe(imagemin({
+		//	'optimizationLevel': 7
+		//}))
+		.pipe(gulp.dest('./dist/images/markers/'));
+});
+
+
 gulp.task('copy', function() {
 	gulp.src(
 		'src/favicon.ico'
@@ -89,5 +100,5 @@ gulp.task('serve', function() {
 		}));
 });
 
-gulp.task('build', ['clean', 'html', 'css', 'js', 'img', 'copy']);
+gulp.task('build', ['clean', 'html', 'css', 'js', 'img', 'copy', 'img-markers']);
 gulp.task('default', ['build', 'serve']);

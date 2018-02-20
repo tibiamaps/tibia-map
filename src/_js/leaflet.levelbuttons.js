@@ -36,6 +36,7 @@ L.LevelButtons = L.Control.extend({
 			this._bringToFront(upper_floor_index);
 			this._setFloor(upper_floor_index);
 			this._updateUrl(upper_floor_index);
+			this._tibia_map_obj._createMapFloorMakers(upper_floor_index);
 		}
 		event.preventDefault();
 	},
@@ -45,6 +46,7 @@ L.LevelButtons = L.Control.extend({
 			this._bringToFront(lower_floor_index);
 			this._setFloor(lower_floor_index);
 			this._updateUrl(lower_floor_index);
+			this._tibia_map_obj._createMapFloorMakers(lower_floor_index);
 		}
 
 		event.preventDefault();
@@ -74,7 +76,7 @@ L.LevelButtons = L.Control.extend({
 	_updateUrl: function(floor) {
 		var coordinates = this._tibia_map_obj.getUrlPosition();
 		coordinates.floor = floor;
-		this._tibia_map_obj.setUrlPosition(coordinates, true);
+		this._tibia_map_obj.setUrlPosition(coordinates, this._tibia_map_obj.getUrlMarkers(), true);
 	}
 });
 
