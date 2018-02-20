@@ -8,6 +8,7 @@ L.LevelButtons = L.Control.extend({
 		var plugin_container = L.DomUtil.create('div', 'leaflet-control-level-buttons-panel leaflet-bar');
 
 		var up_button = L.DomUtil.create('a', 'leaflet-control-level-buttons-a', plugin_container);
+		up_button.id = 'up_button';
 		up_button.textContent = '\u25B2';
 		up_button.href = '#';
 		L.DomEvent.addListener(up_button, 'click', this._onUpButton, this);
@@ -20,6 +21,7 @@ L.LevelButtons = L.Control.extend({
 		plugin_container.appendChild(floor_button);
 
 		var down_button = L.DomUtil.create('a', 'leaflet-control-level-buttons-a', plugin_container);
+		down_button.id = 'down_button';
 		down_button.textContent = '\u25BC';
 		down_button.href = '#';
 		L.DomEvent.addListener(down_button, 'click', this._onDownButton, this);
@@ -31,11 +33,15 @@ L.LevelButtons = L.Control.extend({
 	onRemove: function() {},
 	_onUpButton: function(event) {
 		var upper_floor_index = this._tibia_map_obj.floor - 1;
-
 		if (upper_floor_index >= 0) {
 			this._bringToFront(upper_floor_index);
 			this._setFloor(upper_floor_index);
 			this._updateUrl(upper_floor_index);
+			if(upper_floor_index == 0){
+				this._setDisableElement('up_button');
+			}else{
+				this._setEnableElement('down_button');
+			}
 		}
 		event.preventDefault();
 	},
@@ -45,8 +51,13 @@ L.LevelButtons = L.Control.extend({
 			this._bringToFront(lower_floor_index);
 			this._setFloor(lower_floor_index);
 			this._updateUrl(lower_floor_index);
+			this._setEnableElement('up_button');
+			if(lower_floor_index == 15){
+				this._setDisableElement('down_button');
+			}else{
+				this._setEnableElement('up_button');
+			}
 		}
-
 		event.preventDefault();
 	},
 	setTibiaMap: function(tibia_map_obj) {
@@ -75,6 +86,18 @@ L.LevelButtons = L.Control.extend({
 		var coordinates = this._tibia_map_obj.getUrlPosition();
 		coordinates.floor = floor;
 		this._tibia_map_obj.setUrlPosition(coordinates, true);
+	},
+	_setDisableElement: function(idElement){
+		var element = L.DomUtil.get(idElement);
+		if(!L.DomUtil.hasClass(element, 'leaflet-disabled')){
+			L.DomUtil.addClass(element, 'leaflet-disabled');
+		}
+	},
+	_setEnableElement : function(idElement){
+		var element = L.DomUtil.get(idElement);
+		if(L.DomUtil.hasClass(element, 'leaflet-disabled')){
+			L.DomUtil.removeClass(element, 'leaflet-disabled');
+		}
 	}
 });
 
