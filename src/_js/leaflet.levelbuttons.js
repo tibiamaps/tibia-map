@@ -11,20 +11,19 @@ L.LevelButtons = L.Control.extend({
 		up_button.id = 'up_button';
 		up_button.textContent = '\u25B2';
 		up_button.href = '#';
-		L.DomEvent.addListener(up_button, 'click', this._onUpButton, this);
+		this._setEnableFloorButton(up_button, 'click', this._onUpButton, this);
 		L.DomEvent.disableClickPropagation(up_button);
 		plugin_container.appendChild(up_button);
 
 		var floor_button = L.DomUtil.create('span', 'leaflet-control-level-buttons-span', plugin_container);
 		floor_button.id = 'floor_button';
-
 		plugin_container.appendChild(floor_button);
 
 		var down_button = L.DomUtil.create('a', 'leaflet-control-level-buttons-a', plugin_container);
 		down_button.id = 'down_button';
 		down_button.textContent = '\u25BC';
 		down_button.href = '#';
-		L.DomEvent.addListener(down_button, 'click', this._onDownButton, this);
+		this._setEnableFloorButton(down_button, 'click', this._onDownButton, this);
 		L.DomEvent.disableClickPropagation(down_button);
 		plugin_container.appendChild(down_button);
 
@@ -33,29 +32,30 @@ L.LevelButtons = L.Control.extend({
 	onRemove: function() {},
 	_onUpButton: function(event) {
 		var upper_floor_index = this._tibia_map_obj.floor - 1;
+
 		if (upper_floor_index >= 0) {
 			this._bringToFront(upper_floor_index);
 			this._setFloor(upper_floor_index);
 			this._updateUrl(upper_floor_index);
 			if(upper_floor_index == 0){
-				this._setDisableElement('up_button');
+				this._setDisableFloorButton(L.DomUtil.get('up_button'), 'click', this._onUpButton);
 			}else{
-				this._setEnableElement('down_button');
+				this._setEnableFloorButton(L.DomUtil.get('down_button'), 'click', this._onDownButton);
 			}
 		}
 		event.preventDefault();
 	},
 	_onDownButton: function(event) {
 		var lower_floor_index = this._tibia_map_obj.floor + 1;
+
 		if (lower_floor_index <= 15) {
 			this._bringToFront(lower_floor_index);
 			this._setFloor(lower_floor_index);
 			this._updateUrl(lower_floor_index);
-			this._setEnableElement('up_button');
 			if(lower_floor_index == 15){
-				this._setDisableElement('down_button');
+				this._setDisableFloorButton(L.DomUtil.get('down_button'), 'click', this._onDownButton);
 			}else{
-				this._setEnableElement('up_button');
+				this._setEnableFloorButton(L.DomUtil.get('up_button'), 'click', this._onUpButton);
 			}
 		}
 		event.preventDefault();
@@ -87,16 +87,26 @@ L.LevelButtons = L.Control.extend({
 		coordinates.floor = floor;
 		this._tibia_map_obj.setUrlPosition(coordinates, true);
 	},
-	_setDisableElement: function(idElement){
-		var element = L.DomUtil.get(idElement);
-		if(!L.DomUtil.hasClass(element, 'leaflet-disabled')){
+	_addClassDisabled: function(element){
+		if(element !== null && !L.DomUtil.hasClass(element, 'leaflet-disabled')){
 			L.DomUtil.addClass(element, 'leaflet-disabled');
 		}
 	},
-	_setEnableElement : function(idElement){
-		var element = L.DomUtil.get(idElement);
-		if(L.DomUtil.hasClass(element, 'leaflet-disabled')){
+	_rmClassDisabled: function(element){
+		if(element !== null && L.DomUtil.hasClass(element, 'leaflet-disabled')){
 			L.DomUtil.removeClass(element, 'leaflet-disabled');
+		}
+	},
+	_setEnableFloorButton: function(element, types, fn, context){
+		if (element !== null){
+			L.DomEvent.addListener(element, types, fn, context);
+			this._rmClassDisabled(element);
+		}
+	},
+	_setDisableFloorButton: function(element, types, fn, context){
+		if (element !== null){
+			L.DomEvent.removeListener(element, types, fn, context);
+			this._addClassDisabled(element);
 		}
 	}
 });
