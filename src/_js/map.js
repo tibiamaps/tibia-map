@@ -246,12 +246,19 @@
 			var zoom = map.getZoom();
 			var coordX = Math.floor(Math.abs(coords.x));
 			var coordY = Math.floor(Math.abs(coords.y));
+			var coordZ = _this.floor;
 			setUrlPosition({
 				'x': coordX,
 				'y': coordY,
-				'floor': _this.floor,
+				'floor': coordZ,
 				'zoom': zoom
 			}, true);
+			if (window.console) {
+				var xID = Math.floor(coordX / 256) * 256;
+				var yID = Math.floor(coordY / 256) * 256;
+				var id = xID + '_' + yID + '_' + coordZ;
+				console.log(id);
+			}
 		});
 		L.crosshairs().addTo(map);
 		L.control.coordinates({

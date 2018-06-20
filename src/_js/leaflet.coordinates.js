@@ -136,7 +136,7 @@ L.Control.Coordinates = L.Control.extend({
 				var label = L.DomUtil.create('div', '', container);
 				label.innerHTML = this._createCoordinateLabel(ll);
 				var close = L.DomUtil.create('a', '', container);
-				close.innerHTML = 'Remove';
+				close.textContent = 'Remove';
 				close.href = '#';
 				var stop = L.DomEvent.stopPropagation;
 				L.DomEvent.on(close, 'click', stop).on(close, 'mousedown', stop).on(close, 'dblclick', stop).on(close, 'click', L.DomEvent.preventDefault).on(close, 'click', function() {
@@ -163,7 +163,6 @@ L.Control.Coordinates = L.Control.extend({
 		map.off('mousemove', this._update, this);
 	},
 	'_update': function(event) {
-
 		var pos = event.latlng;
 		var opts = this.options;
 		if (pos) {
