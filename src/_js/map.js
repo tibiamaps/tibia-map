@@ -197,13 +197,23 @@
 			'updateWhenIdle': true,
 			'zoomAnimationThreshold': 4
 		});
-		L.control.fullscreen({
-			'title': {
-				'false': isEmbed ? 'Explore this area in the map viewer' : 'View fullscreen',
-				'true': 'Exit fullscreen'
-			},
-			'pseudoFullscreen': true
-		}).addTo(map);
+
+		_this.createdFullScrenBtn = false;
+
+		if (document.getElementById('map').getAttribute('data-fullscreen') === undefined ||
+			(document.getElementById('map').getAttribute('data-fullscreen') !== undefined &&
+				document.getElementById('map').getAttribute('data-fullscreen') != 0)
+			){
+			L.control.fullscreen({
+				'title': {
+					'false': isEmbed ? 'Explore this area in the map viewer' : 'View fullscreen',
+					'true': 'Exit fullscreen'
+				},
+				'pseudoFullscreen': true
+			}).addTo(map);
+
+			_this.createdFullScrenBtn = true;
+		}
 		var baseMaps = {
 			'Floor +7': _this._createMapFloorLayer(0),
 			'Floor +6': _this._createMapFloorLayer(1),
@@ -257,7 +267,6 @@
 				var xID = Math.floor(coordX / 256) * 256;
 				var yID = Math.floor(coordY / 256) * 256;
 				var id = xID + '_' + yID + '_' + coordZ;
-				console.log(id);
 			}
 		});
 		L.crosshairs().addTo(map);
@@ -277,8 +286,11 @@
 		_this._showHoverTile();
 	};
 
+
+
 	var map = new TibiaMap();
 	map.init();
+
 	L.LevelButtons.btns.setTibiaMap(map);
 
 	var fakeClick = function(target) {
@@ -291,40 +303,42 @@
 		return url.replace('/embed', '');
 	};
 
-	var fullscreen = document.querySelector('.leaflet-control-fullscreen-button');
-	// Make the fullscreen ‘button’ act as a permalink in embed views.
-	if (isEmbed) {
-		// Ensure right-click → copy URL works.
-		fullscreen.href = unembed(location.href);
-		// Override the fullscreen behavior.
-		fullscreen.addEventListener('click', function(event) {
-			window.top.location = unembed(location.href);
-			event.stopPropagation();
-		});
-	} else {
-		// Add keyboard shortcuts.
-		// Since `fakeClick` seems to follow the `href` no matter what (at least in
-		// Chrome/Opera), change it to a no-op.
-		fullscreen.href = 'javascript:null';
-		document.documentElement.addEventListener('keydown', function(event) {
-			var _map = map.map;
-			if (
-				// Press `F` to toggle pseudo-fullscreen mode.
-				event.keyCode == 0x46 ||
-				// Press `Esc` to exit pseudo-fullscreen mode.
-				(event.keyCode == 0x1B && _map.isFullscreen())
-			) {
-				// The following doesn’t seem to work:
-				//_map.toggleFullscreen();
-				// …so let’s hack around it:
-				fakeClick(fullscreen);
-			}
-			// Press `C` to center the map on the selected coordinate.
-			if (event.keyCode == 0x43) {
-				var current = getUrlPosition();
-				_map.panTo(_map.unproject([current.x, current.y], 0));
-			}
-		});
+	if (map.createdFullScrenBtn){
+		var fullscreen = document.querySelector('.leaflet-control-fullscreen-button');
+		// Make the fullscreen ‘button’ act as a permalink in embed views.
+		if (isEmbed) {
+			// Ensure right-click → copy URL works.
+			fullscreen.href = unembed(location.href);
+			// Override the fullscreen behavior.
+			fullscreen.addEventListener('click', function(event) {
+				window.top.location = unembed(location.href);
+				event.stopPropagation();
+			});
+		} else {
+			// Add keyboard shortcuts.
+			// Since `fakeClick` seems to follow the `href` no matter what (at least in
+			// Chrome/Opera), change it to a no-op.
+			fullscreen.href = 'javascript:null';
+			document.documentElement.addEventListener('keydown', function(event) {
+				var _map = map.map;
+				if (
+					// Press `F` to toggle pseudo-fullscreen mode.
+					event.keyCode == 0x46 ||
+					// Press `Esc` to exit pseudo-fullscreen mode.
+					(event.keyCode == 0x1B && _map.isFullscreen())
+				) {
+					// The following doesn’t seem to work:
+					//_map.toggleFullscreen();
+					// …so let’s hack around it:
+					fakeClick(fullscreen);
+				}
+				// Press `C` to center the map on the selected coordinate.
+				if (event.keyCode == 0x43) {
+					var current = getUrlPosition();
+					_map.panTo(_map.unproject([current.x, current.y], 0));
+				}
+			});
+		}
 	}
 
 }());
