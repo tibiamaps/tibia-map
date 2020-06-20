@@ -175,7 +175,7 @@
 		modifyLeaflet();
 		// Taken from https://tibiamaps.github.io/tibia-map-data/bounds.json, which
 		// rarely (if ever) changes.
-		var bounds = { 'xMin': 124, 'xMax': 132, 'yMin': 121, 'yMax': 128 };
+		var bounds = { 'xMin': 124, 'xMax': 133, 'yMin': 121, 'yMax': 128 };
 		var xPadding = window.innerWidth / 256 / 2;
 		var yPadding = window.innerHeight / 256 / 2;
 		var yMin = bounds.yMin - yPadding;
