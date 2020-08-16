@@ -195,7 +195,8 @@
 			'scrollWheelZoom': !isEmbed,
 			'unloadInvisibleTiles': false,
 			'updateWhenIdle': true,
-			'zoomAnimationThreshold': 4
+			'zoomAnimationThreshold': 4,
+			'touchZoom': false
 		});
 		L.control.fullscreen({
 			'title': {
