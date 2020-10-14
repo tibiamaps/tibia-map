@@ -55,11 +55,11 @@ L.Control.Coordinates = L.Control.extend({
 		this._map.removeLayer(this._marker);
 	},
 	'_handleKeypress': function(event) {
-		switch (event.keyCode) {
-			case 0x1B: // Esc
+		switch (event.key) {
+			case 'Escape':
 				this.collapse();
 				break;
-			case 0x0D: // Enter
+			case 'Enter':
 				this._handleSubmit();
 				this.collapse();
 				break;

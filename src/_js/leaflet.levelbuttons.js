@@ -50,7 +50,6 @@ L.LevelButtons = L.Control.extend({
 	},
 	setTibiaMap: function(tibia_map_obj) {
 		this._tibia_map_obj = tibia_map_obj;
-		var floor_button = L.DomUtil.get('floor_button');
 		this._setFloor(this._tibia_map_obj.floor);
 	},
 	_bringToFront: function(layer_index) {

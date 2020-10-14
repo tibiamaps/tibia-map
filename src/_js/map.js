@@ -321,7 +321,7 @@
 			var _map = map.map;
 			if (
 				// Press `F` to toggle pseudo-fullscreen mode.
-				event.key == 'KeyF' ||
+				event.key == 'f' ||
 				// Press `Esc` to exit pseudo-fullscreen mode.
 				(event.key == 'Escape' && _map.isFullscreen())
 			) {
@@ -331,7 +331,7 @@
 				fakeClick(fullscreen);
 			}
 			// Press `C` to center the map on the selected coordinate.
-			if (event.key == 'KeyC') {
+			if (event.key == 'c') {
 				var current = getUrlPosition();
 				_map.panTo(_map.unproject([current.x, current.y], 0));
 			}
