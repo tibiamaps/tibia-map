@@ -31,7 +31,6 @@ L.LevelButtons = L.Control.extend({
 	onRemove: function() {},
 	_onUpButton: function(event) {
 		var upper_floor_index = this._tibia_map_obj.floor - 1;
-
 		if (upper_floor_index >= 0) {
 			this._bringToFront(upper_floor_index);
 			this._setFloor(upper_floor_index);
@@ -56,7 +55,7 @@ L.LevelButtons = L.Control.extend({
 	},
 	_bringToFront: function(layer_index) {
 		// Simulate a click on the chosen option.
-		this.options.layers_widget._form[layer_index].click();
+		this.options.layers_widget._layerControlInputs[layer_index].click();
 	},
 	_setFloor: function(floor) {
 		var floor_button = L.DomUtil.get('floor_button');
