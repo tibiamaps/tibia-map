@@ -23,10 +23,6 @@
 	};
 	fetchKnownTiles();
 	var isEmbed = location.pathname.indexOf('/embed') != -1;
-	var padNumber = function(number, size) {
-		var s = '000' + String(number);
-		return s.substr(s.length - size);
-	};
 	var setUrlPosition = function(coords, forceHash) {
 		var url = '#' + coords.x + ',' + coords.y + ',' + coords.floor + ':' + coords.zoom;
 		if (
@@ -110,8 +106,6 @@
 		var mapLayer = this.mapFloors[floor] = new L.GridLayer({
 			'floor': floor
 		});
-		var map = this.map;
-		var _this = this;
 		mapLayer.getTileSize = function() {
 			var tileSize = L.GridLayer.prototype.getTileSize.call(this);
 			var zoom = this._tileZoom;
@@ -174,7 +168,6 @@
 			var x = Math.floor(pos.x);
 			var y = Math.floor(pos.y);
 			var bounds = [map.unproject([x, y], 0), map.unproject([x + 1, y + 1], 0)];
-			var bounds1 = [map.project([x, y], 0), map.project([x + 1, y + 1], 0)];
 			if (!_this.hoverTile) {
 				_this.hoverTile = L.rectangle(bounds, {
 					'color': '#009eff',
@@ -328,9 +321,9 @@
 			var _map = map.map;
 			if (
 				// Press `F` to toggle pseudo-fullscreen mode.
-				event.keyCode == 0x46 ||
+				event.key == 'KeyF' ||
 				// Press `Esc` to exit pseudo-fullscreen mode.
-				(event.keyCode == 0x1B && _map.isFullscreen())
+				(event.key == 'Escape' && _map.isFullscreen())
 			) {
 				// The following doesn’t seem to work:
 				//_map.toggleFullscreen();
@@ -338,7 +331,7 @@
 				fakeClick(fullscreen);
 			}
 			// Press `C` to center the map on the selected coordinate.
-			if (event.keyCode == 0x43) {
+			if (event.key == 'KeyC') {
 				var current = getUrlPosition();
 				_map.panTo(_map.unproject([current.x, current.y], 0));
 			}
