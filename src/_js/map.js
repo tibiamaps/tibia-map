@@ -44,7 +44,24 @@
 			'floor': 7,
 			'zoom': 0
 		};
-		var parts = window.location.hash.slice(1).split(':');
+		var parts;
+		var hash = window.location.hash.slice(1);
+		if (hash.includes('%20')) {
+			// Handle URLs containing copy-pasted markers from the
+			// tibia-map-data repository, such as:
+			//     #"x": 32838, "y": 32818, "z": 11
+			// Such URLs do not specify a zoom level.
+			hash = decodeURIComponent(hash);
+			parts = hash.replace(/[^0-9,]/g, '').split(',');
+			position.x = parseInt(parts[0], 10);
+			position.y = parseInt(parts[1], 10);
+			position.floor = parseInt(parts[2], 10);
+			return position;
+		}
+		// Otherwise, handle URLs containing the expected format:
+		//    #32838,32818,11:2
+		// Note that the zoom level (`:2`) is optional.
+		parts = hash.split(':');
 		if (parts[0]) {
 			var tempPos = parts[0].split(',');
 			if (tempPos.length == 3) {
