@@ -28,7 +28,7 @@ L.Crosshairs = L.LayerGroup.extend({
 				],
 				this.options.style
 			),
-			'rectangle_exiva_274': L.rectangle(
+			'rectangle_exiva_250': L.rectangle(
 				[
 					[-274, -274],
 					[275, 275]
@@ -73,7 +73,7 @@ L.Crosshairs = L.LayerGroup.extend({
 	_moveCrosshairs: function(e) {
 		var bounds;
 		var bounds_exiva_100;
-		var bounds_exiva_274;
+		var bounds_exiva_250;
 		if (e.latlng) {
 			var pos = this._map.project(e.latlng, 0);
 			var x = Math.floor(pos.x);
@@ -86,19 +86,19 @@ L.Crosshairs = L.LayerGroup.extend({
 				this._map.unproject([x - 100, y - 100], 0),
 				this._map.unproject([x + 101, y + 101], 0)
 			);
-			bounds_exiva_274 = L.latLngBounds(
-				this._map.unproject([x - 274, y - 274], 0),
-				this._map.unproject([x + 275, y + 275], 0)
+			bounds_exiva_250 = L.latLngBounds(
+				this._map.unproject([x - 250, y - 250], 0),
+				this._map.unproject([x + 251, y + 251], 0)
 			);
 		} else {
 			bounds = this.crosshair.rectangle.getBounds();
 			bounds_exiva_100 = this.crosshair.rectangle_exiva_100.getBounds();
-			bounds_exiva_274 = this.crosshair.rectangle_exiva_274.getBounds();
+			bounds_exiva_250 = this.crosshair.rectangle_exiva_250.getBounds();
 		}
 		var latlng = bounds.getCenter();
 		this.crosshair.rectangle.setBounds(bounds);
 		this.crosshair.rectangle_exiva_100.setBounds(bounds_exiva_100);
-		this.crosshair.rectangle_exiva_274.setBounds(bounds_exiva_274);
+		this.crosshair.rectangle_exiva_250.setBounds(bounds_exiva_250);
 		var point = this._map.project(latlng);
 		this.crosshair.longitude_line_north.setLatLngs([
 			this._map.unproject([point.x, point.y]),
