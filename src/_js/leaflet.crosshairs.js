@@ -14,10 +14,34 @@ L.Crosshairs = L.LayerGroup.extend({
 		L.LayerGroup.prototype.initialize.call(this);
 		L.Util.setOptions(this, options);
 		this.crosshair = {
-			'rectangle': L.rectangle([
-				[0, 0],
-				[1, 1]
-			], this.options.style),
+			'rectangle': L.rectangle(
+				[
+					[0, 0],
+					[1, 1]
+				],
+				this.options.style
+			),
+			'rectangle_exiva_4': L.rectangle(
+				[
+					[-4, -4],
+					[5, 5]
+				],
+				this.options.style
+			),
+			'rectangle_exiva_100': L.rectangle(
+				[
+					[-100, -100],
+					[101, 101]
+				],
+				this.options.style
+			),
+			'rectangle_exiva_274': L.rectangle(
+				[
+					[-274, -274],
+					[275, 275]
+				],
+				this.options.style
+			),
 			'longitude_line_north': L.polyline([], this.options.style),
 			'longitude_line_south': L.polyline([], this.options.style),
 			'latitude_line_east': L.polyline([], this.options.style),
@@ -55,6 +79,9 @@ L.Crosshairs = L.LayerGroup.extend({
 	},
 	_moveCrosshairs: function(e) {
 		var bounds;
+		var bounds_exiva_4;
+		var bounds_exiva_100;
+		var bounds_exiva_274;
 		if (e.latlng) {
 			var pos = this._map.project(e.latlng, 0);
 			var x = Math.floor(pos.x);
@@ -63,11 +90,29 @@ L.Crosshairs = L.LayerGroup.extend({
 				this._map.unproject([x, y], 0),
 				this._map.unproject([x + 1, y + 1], 0)
 			);
+			bounds_exiva_4 = L.latLngBounds(
+				this._map.unproject([x - 4, y - 4], 0),
+				this._map.unproject([x + 5, y + 5], 0)
+			);
+			bounds_exiva_100 = L.latLngBounds(
+				this._map.unproject([x - 100, y - 100], 0),
+				this._map.unproject([x + 101, y + 101], 0)
+			);
+			bounds_exiva_274 = L.latLngBounds(
+				this._map.unproject([x - 274, y - 274], 0),
+				this._map.unproject([x + 275, y + 275], 0)
+			);
 		} else {
 			bounds = this.crosshair.rectangle.getBounds();
+			bounds_exiva_4 = this.crosshair.rectangle_exiva_4.getBounds();
+			bounds_exiva_100 = this.crosshair.rectangle_exiva_100.getBounds();
+			bounds_exiva_274 = this.crosshair.rectangle_exiva_274.getBounds();
 		}
 		var latlng = bounds.getCenter();
 		this.crosshair.rectangle.setBounds(bounds);
+		this.crosshair.rectangle_exiva_4.setBounds(bounds_exiva_4);
+		this.crosshair.rectangle_exiva_100.setBounds(bounds_exiva_100);
+		this.crosshair.rectangle_exiva_274.setBounds(bounds_exiva_274);
 		var point = this._map.project(latlng);
 		this.crosshair.longitude_line_north.setLatLngs([
 			this._map.unproject([point.x, point.y]),
