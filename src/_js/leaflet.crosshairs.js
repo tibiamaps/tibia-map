@@ -24,7 +24,7 @@ L.Crosshairs = L.LayerGroup.extend({
 			'latitude_line_west': L.polyline([], this.options.style),
 		}
 		for (var layer in this.crosshair) {
-			this.addLayer(this.crosshair[layer])
+			this.addLayer(this.crosshair[layer]);
 		}
 	},
 	onAdd: function(map) {
@@ -32,26 +32,26 @@ L.Crosshairs = L.LayerGroup.extend({
 		this._moveCrosshairs({
 			latlng: this._map.getCenter()
 		});
-		this._map.on('click', this._moveCrosshairs.bind(this))
-		this._map.on('move', this._moveCrosshairs.bind(this))
-		this._map.on('zoomend', this._moveCrosshairs.bind(this))
-		this._map.on('mouseover', this._show.bind(this))
+		this._map.on('click', this._moveCrosshairs.bind(this));
+		this._map.on('move', this._moveCrosshairs.bind(this));
+		this._map.on('zoomend', this._moveCrosshairs.bind(this));
+		this._map.on('mouseover', this._show.bind(this));
 		this.eachLayer(map.addLayer, map);
 	},
 	onRemove: function(map) {
-		this._map.off('click', this._moveCrosshairs)
-		this._map.off('zoomend', this._moveCrosshairs)
+		this._map.off('click', this._moveCrosshairs);
+		this._map.off('zoomend', this._moveCrosshairs);
 		this.eachLayer(this.removeLayer, this);
 	},
 	_show: function() {
 		this.eachLayer(function(l) {
-			this._map.addLayer(l)
-		}, this)
+			this._map.addLayer(l);
+		}, this);
 	},
 	_hide: function() {
-		this.eachLayer(function(l) {
-			this._map.removeLayer(l)
-		}, this)
+		this.eachLayer(function(l) {;
+			this._map.removeLayer(l);
+		}, this);
 	},
 	_moveCrosshairs: function(e) {
 		var bounds;
@@ -59,19 +59,34 @@ L.Crosshairs = L.LayerGroup.extend({
 			var pos = this._map.project(e.latlng, 0);
 			var x = Math.floor(pos.x);
 			var y = Math.floor(pos.y);
-			bounds = L.latLngBounds(this._map.unproject([x, y], 0), this._map.unproject([x + 1, y + 1], 0));
+			bounds = L.latLngBounds(
+				this._map.unproject([x, y], 0),
+				this._map.unproject([x + 1, y + 1], 0)
+			);
 		} else {
 			bounds = this.crosshair.rectangle.getBounds();
 		}
 		var latlng = bounds.getCenter();
 		this.crosshair.rectangle.setBounds(bounds);
 		var point = this._map.project(latlng);
-		this.crosshair.longitude_line_north.setLatLngs([this._map.unproject([point.x, point.y]), this._map.unproject([point.x, this._map.getPixelBounds().min.y])])
-		this.crosshair.longitude_line_south.setLatLngs([this._map.unproject([point.x, point.y]), this._map.unproject([point.x, this._map.getPixelBounds().max.y])])
-		this.crosshair.latitude_line_east.setLatLngs([this._map.unproject([point.x, point.y]), this._map.unproject([this._map.getPixelBounds().min.x, point.y])])
-		this.crosshair.latitude_line_west.setLatLngs([this._map.unproject([point.x, point.y]), this._map.unproject([this._map.getPixelBounds().max.x, point.y])])
+		this.crosshair.longitude_line_north.setLatLngs([
+			this._map.unproject([point.x, point.y]),
+			this._map.unproject([point.x, this._map.getPixelBounds().min.y])
+		]);
+		this.crosshair.longitude_line_south.setLatLngs([
+			this._map.unproject([point.x, point.y]),
+			this._map.unproject([point.x, this._map.getPixelBounds().max.y])
+		]);
+		this.crosshair.latitude_line_east.setLatLngs([
+			this._map.unproject([point.x, point.y]),
+			this._map.unproject([this._map.getPixelBounds().min.x, point.y])
+		]);
+		this.crosshair.latitude_line_west.setLatLngs([
+			this._map.unproject([point.x, point.y]),
+			this._map.unproject([this._map.getPixelBounds().max.x, point.y])
+		]);
 	}
 });
 L.crosshairs = function(options) {
-	return new L.Crosshairs(options)
+	return new L.Crosshairs(options);
 };
