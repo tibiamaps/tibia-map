@@ -14,27 +14,9 @@ L.Crosshairs = L.LayerGroup.extend({
 		L.LayerGroup.prototype.initialize.call(this);
 		L.Util.setOptions(this, options);
 		this.crosshair = {
-			'rectangle': L.rectangle(
-				[
-					[0, 0],
-					[1, 1]
-				],
-				this.options.style
-			),
-			'rectangle_exiva_100': L.rectangle(
-				[
-					[-100, -100],
-					[101, 101]
-				],
-				this.options.style
-			),
-			'rectangle_exiva_250': L.rectangle(
-				[
-					[-274, -274],
-					[275, 275]
-				],
-				this.options.style
-			),
+			'rectangle': this.calculateExivaRectangle(0, this.options.style),
+			'rectangle_exiva_100': this.calculateExivaRectangle(100, this.options.style),
+			'rectangle_exiva_250': this.calculateExivaRectangle(250, this.options.style),
 			'longitude_line_north': L.polyline([], this.options.style),
 			'longitude_line_south': L.polyline([], this.options.style),
 			'latitude_line_east': L.polyline([], this.options.style),
@@ -43,6 +25,21 @@ L.Crosshairs = L.LayerGroup.extend({
 		for (var layer in this.crosshair) {
 			this.addLayer(this.crosshair[layer]);
 		}
+	},
+	calculateExivaBounds: function(size, x, y) {
+		return L.latLngBounds(
+			this._map.unproject([x - size, y - size], 0),
+			this._map.unproject([x + size + 1, y + size + 1], 0)
+		);
+	},
+	calculateExivaRectangle: function(size, style) {
+		return L.rectangle(
+			[
+				[-size, -size],
+				[size + 1, size + 1]
+			],
+			style
+		);
 	},
 	onAdd: function(map) {
 		this._map = map
@@ -78,18 +75,9 @@ L.Crosshairs = L.LayerGroup.extend({
 			var pos = this._map.project(e.latlng, 0);
 			var x = Math.floor(pos.x);
 			var y = Math.floor(pos.y);
-			bounds = L.latLngBounds(
-				this._map.unproject([x, y], 0),
-				this._map.unproject([x + 1, y + 1], 0)
-			);
-			bounds_exiva_100 = L.latLngBounds(
-				this._map.unproject([x - 100, y - 100], 0),
-				this._map.unproject([x + 101, y + 101], 0)
-			);
-			bounds_exiva_250 = L.latLngBounds(
-				this._map.unproject([x - 250, y - 250], 0),
-				this._map.unproject([x + 251, y + 251], 0)
-			);
+			bounds = this.calculateExivaBounds(0, x, y);
+			bounds_exiva_100 = this.calculateExivaBounds(100, x, y);
+			bounds_exiva_250 = this.calculateExivaBounds(250, x, y);
 		} else {
 			bounds = this.crosshair.rectangle.getBounds();
 			bounds_exiva_100 = this.crosshair.rectangle_exiva_100.getBounds();
