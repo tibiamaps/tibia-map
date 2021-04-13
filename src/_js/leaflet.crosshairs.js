@@ -1,30 +1,32 @@
 // Customized version of https://github.com/frankrowe/Leaflet.Crosshairs
 L.Crosshairs = L.LayerGroup.extend({
-	'options': {
-		'style': {
-			'opacity': 1,
-			'fillOpacity': 0,
-			'weight': 2,
-			'color': '#333',
-			'clickable': false,
-			'pointerEvents': 'none'
+	options: {
+		style: {
+			opacity: 1,
+			fillOpacity: 0,
+			weight: 2,
+			color: '#333',
+			clickable: false,
+			pointerEvents: 'none'
 		}
 	},
+	exiva: false,
 	initialize: function(options) {
 		L.LayerGroup.prototype.initialize.call(this);
 		L.Util.setOptions(this, options);
 		this.crosshair = {
-			'rectangle': this.calculateExivaRectangle(0, this.options.style),
-			'rectangle_exiva_100': this.calculateExivaRectangle(100, this.options.style),
-			'rectangle_exiva_250': this.calculateExivaRectangle(250, this.options.style),
-			'longitude_line_north': L.polyline([], this.options.style),
-			'longitude_line_south': L.polyline([], this.options.style),
-			'latitude_line_east': L.polyline([], this.options.style),
-			'latitude_line_west': L.polyline([], this.options.style),
+			rectangle: this.calculateExivaRectangle(0, this.options.style),
+			rectangle_exiva_100: this.calculateExivaRectangle(100, this.options.style),
+			rectangle_exiva_250: this.calculateExivaRectangle(250, this.options.style),
+			longitude_line_north: L.polyline([], this.options.style),
+			longitude_line_south: L.polyline([], this.options.style),
+			latitude_line_east: L.polyline([], this.options.style),
+			latitude_line_west: L.polyline([], this.options.style),
 		}
 		for (var layer in this.crosshair) {
 			this.addLayer(this.crosshair[layer]);
 		}
+		this._hideExiva();
 	},
 	calculateExivaBounds: function(size, x, y) {
 		return L.latLngBounds(
@@ -66,6 +68,23 @@ L.Crosshairs = L.LayerGroup.extend({
 		this.eachLayer(function(l) {;
 			this._map.removeLayer(l);
 		}, this);
+	},
+	_showExiva: function() {
+		this.exiva = true;
+		this.addLayer(this.crosshair.rectangle_exiva_100);
+		this.addLayer(this.crosshair.rectangle_exiva_250);
+	},
+	_hideExiva: function() {
+		this.exiva = false;
+		this.removeLayer(this.crosshair.rectangle_exiva_100);
+		this.removeLayer(this.crosshair.rectangle_exiva_250);
+	},
+	_toggleExiva: function() {
+		if (this.exiva) {
+			this._hideExiva();
+		} else {
+			this._showExiva();
+		}
 	},
 	_moveCrosshairs: function(e) {
 		var bounds;

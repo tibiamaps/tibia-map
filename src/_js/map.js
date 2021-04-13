@@ -1,6 +1,7 @@
 (function() {
 	function TibiaMap() {
 		this.map = null;
+		this.crosshairs = null;
 		this.floor = 7;
 		this.mapFloors = [];
 		this.mapDataStore = [];
@@ -271,7 +272,7 @@
 				console.log(id);
 			}
 		});
-		L.crosshairs().addTo(map);
+		this.crosshairs = L.crosshairs().addTo(map);
 		L.control.coordinates({
 			'position': 'bottomleft',
 			'enableUserInput': false,
@@ -337,7 +338,7 @@
 			}
 			// Press `E` to toggle the exiva overlay.
 			if (event.key === 'e') {
-				console.log('Toggling exiva overlay');
+				map.crosshairs._toggleExiva();
 			}
 		});
 	}
