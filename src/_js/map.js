@@ -15,14 +15,14 @@
 		xhr.open('GET', URL_PREFIX + 'tiles.json', true);
 		xhr.responseType = 'json';
 		xhr.onload = function() {
-			if (xhr.status == 200) {
+			if (xhr.status === 200) {
 				KNOWN_TILES = new Set(xhr.response);
 			}
 		};
 		xhr.send();
 	};
 	fetchKnownTiles();
-	var isEmbed = location.pathname.indexOf('/embed') != -1;
+	var isEmbed = location.pathname.indexOf('/embed') !== -1;
 	var setUrlPosition = function(coords, forceHash) {
 		var url = '#' + coords.x + ',' + coords.y + ',' + coords.floor + ':' + coords.zoom;
 		if (
@@ -131,7 +131,7 @@
 			tile.width = tile.height = 256;
 
 			var latlng = this._map.project({ lng: coords.x, lat: coords.y }, 0);
-			Object.keys(latlng).map(function(key, _) {
+			Object.keys(latlng).map(function(key) {
 				latlng[key] = Math.abs(latlng[key]);
 			});
 
@@ -314,16 +314,16 @@
 		});
 	} else {
 		// Add keyboard shortcuts.
-		// Since `fakeClick` seems to follow the `href` no matter what (at least in
-		// Chrome/Opera), change it to a no-op.
+		// Since `fakeClick` seems to follow the `href` no matter what (at
+		// least in Chrome), change it to a no-op.
 		fullscreen.href = 'javascript:null';
 		document.documentElement.addEventListener('keydown', function(event) {
 			var _map = map.map;
 			if (
 				// Press `F` to toggle pseudo-fullscreen mode.
-				event.key == 'f' ||
+				event.key === 'f' ||
 				// Press `Esc` to exit pseudo-fullscreen mode.
-				(event.key == 'Escape' && _map.isFullscreen())
+				(event.key === 'Escape' && _map.isFullscreen())
 			) {
 				// The following doesn’t seem to work:
 				//_map.toggleFullscreen();
@@ -331,9 +331,13 @@
 				fakeClick(fullscreen);
 			}
 			// Press `C` to center the map on the selected coordinate.
-			if (event.key == 'c') {
+			if (event.key === 'c') {
 				var current = getUrlPosition();
 				_map.panTo(_map.unproject([current.x, current.y], 0));
+			}
+			// Press `E` to toggle the exiva overlay.
+			if (event.key === 'e') {
+				console.log('Toggling exiva overlay');
 			}
 		});
 	}
