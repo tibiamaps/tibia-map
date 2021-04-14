@@ -30,7 +30,7 @@ L.Crosshairs = L.LayerGroup.extend({
 			exiva_line_southwest_2: L.polyline([], this.options.style),
 			exiva_line_northwest_1: L.polyline([], this.options.style),
 			exiva_line_northwest_2: L.polyline([], this.options.style),
-		}
+		};
 		for (var layer in this.crosshair) {
 			this.addLayer(this.crosshair[layer]);
 		}
@@ -52,7 +52,7 @@ L.Crosshairs = L.LayerGroup.extend({
 		);
 	},
 	onAdd: function(map) {
-		this._map = map
+		this._map = map;
 		this._moveCrosshairs({
 			latlng: this._map.getCenter()
 		});
@@ -77,41 +77,43 @@ L.Crosshairs = L.LayerGroup.extend({
 			this._map.removeLayer(l);
 		}, this);
 	},
+	_exivaLayers: {
+		show: [
+			'exiva_rectangle_100',
+			'exiva_rectangle_250',
+			'exiva_line_northeast_1',
+			'exiva_line_northeast_2',
+			'exiva_line_southeast_1',
+			'exiva_line_southeast_2',
+			'exiva_line_southwest_1',
+			'exiva_line_southwest_2',
+			'exiva_line_northwest_1',
+			'exiva_line_northwest_2',
+		],
+		hide: [
+			'longitude_line_north',
+			'longitude_line_south',
+			'latitude_line_east',
+			'latitude_line_west',
+		]
+	},
 	_showExiva: function() {
 		this.exiva = true;
-		this.addLayer(this.crosshair.exiva_rectangle_100);
-		this.addLayer(this.crosshair.exiva_rectangle_250);
-		this.addLayer(this.crosshair.exiva_rectangle_250);
-		this.addLayer(this.crosshair.exiva_line_northeast_1);
-		this.addLayer(this.crosshair.exiva_line_northeast_2);
-		this.addLayer(this.crosshair.exiva_line_southeast_1);
-		this.addLayer(this.crosshair.exiva_line_southeast_2);
-		this.addLayer(this.crosshair.exiva_line_southwest_1);
-		this.addLayer(this.crosshair.exiva_line_southwest_2);
-		this.addLayer(this.crosshair.exiva_line_northwest_1);
-		this.addLayer(this.crosshair.exiva_line_northwest_2);
-		this.removeLayer(this.crosshair.longitude_line_north);
-		this.removeLayer(this.crosshair.longitude_line_south);
-		this.removeLayer(this.crosshair.latitude_line_east);
-		this.removeLayer(this.crosshair.latitude_line_west);
-
+		for (const layerId of this._exivaLayers.show) {
+			this.addLayer(this.crosshair[layerId]);
+		}
+		for (const layerId of this._exivaLayers.hide) {
+			this.removeLayer(this.crosshair[layerId]);
+		}
 	},
 	_hideExiva: function() {
 		this.exiva = false;
-		this.removeLayer(this.crosshair.exiva_rectangle_100);
-		this.removeLayer(this.crosshair.exiva_rectangle_250);
-		this.removeLayer(this.crosshair.exiva_line_northeast_1);
-		this.removeLayer(this.crosshair.exiva_line_northeast_2);
-		this.removeLayer(this.crosshair.exiva_line_southeast_1);
-		this.removeLayer(this.crosshair.exiva_line_southeast_2);
-		this.removeLayer(this.crosshair.exiva_line_southwest_1);
-		this.removeLayer(this.crosshair.exiva_line_southwest_2);
-		this.removeLayer(this.crosshair.exiva_line_northwest_1);
-		this.removeLayer(this.crosshair.exiva_line_northwest_2);
-		this.addLayer(this.crosshair.longitude_line_north);
-		this.addLayer(this.crosshair.longitude_line_south);
-		this.addLayer(this.crosshair.latitude_line_east);
-		this.addLayer(this.crosshair.latitude_line_west);
+		for (const layerId of this._exivaLayers.hide) {
+			this.addLayer(this.crosshair[layerId]);
+		}
+		for (const layerId of this._exivaLayers.show) {
+			this.removeLayer(this.crosshair[layerId]);
+		}
 	},
 	_toggleExiva: function() {
 		if (this.exiva) {
