@@ -159,9 +159,11 @@ L.Crosshairs = L.LayerGroup.extend({
 			this._map.unproject([point.x, point.y]),
 			this._map.unproject([this._map.getPixelBounds().max.x, point.y])
 		]);
+		// This number should be large enough to cover the difference
+		// between xMin/xMax and yMin/yMax.
+		// https://tibiamaps.github.io/tibia-map-data/bounds.json
 		var DIAGONAL_SIZE = 2500;
 		var DOUBLE_DIAGONAL_SIZE = DIAGONAL_SIZE * 2;
-		// Exiva diagonals.
 		this.crosshair.exiva_line_northeast_1.setLatLngs([
 			this._map.unproject([point.x, point.y]),
 			this._map.unproject([point.x + DIAGONAL_SIZE, point.y - DOUBLE_DIAGONAL_SIZE])
