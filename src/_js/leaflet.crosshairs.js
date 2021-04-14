@@ -160,9 +160,14 @@ L.Crosshairs = L.LayerGroup.extend({
 			this._map.unproject([this._map.getPixelBounds().max.x, point.y])
 		]);
 		// This number should be large enough to cover the difference
-		// between xMin/xMax and yMin/yMax.
+		// between xMin/xMax and yMin/yMax on all zoom levels.
+		//console.log(point.x, point.y, this._map.getZoom());
+		// bottom right = 1372140 1320940
+		// top left     = 1269780 1239060
+		// ------------------------------
+		// delta        =  102360   81880
 		// https://tibiamaps.github.io/tibia-map-data/bounds.json
-		var DIAGONAL_SIZE = 2500;
+		var DIAGONAL_SIZE = 102360;
 		var OTHER_DIAGONAL_SIZE = DIAGONAL_SIZE * 2.42;
 		this.crosshair.exiva_line_northeast_1.setLatLngs([
 			this._map.unproject([point.x, point.y]),

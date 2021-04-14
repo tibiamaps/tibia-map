@@ -260,10 +260,10 @@
 			var coordY = Math.floor(Math.abs(coords.y));
 			var coordZ = _this.floor;
 			setUrlPosition({
-				'x': coordX,
-				'y': coordY,
-				'floor': coordZ,
-				'zoom': zoom
+				x: coordX,
+				y: coordY,
+				floor: coordZ,
+				zoom: zoom
 			}, true);
 			if (window.console) {
 				var xID = Math.floor(coordX / 256) * 256;
