@@ -163,38 +163,38 @@ L.Crosshairs = L.LayerGroup.extend({
 		// between xMin/xMax and yMin/yMax.
 		// https://tibiamaps.github.io/tibia-map-data/bounds.json
 		var DIAGONAL_SIZE = 2500;
-		var DOUBLE_DIAGONAL_SIZE = DIAGONAL_SIZE * 2;
+		var OTHER_DIAGONAL_SIZE = DIAGONAL_SIZE * 2.42;
 		this.crosshair.exiva_line_northeast_1.setLatLngs([
 			this._map.unproject([point.x, point.y]),
-			this._map.unproject([point.x + DIAGONAL_SIZE, point.y - DOUBLE_DIAGONAL_SIZE])
+			this._map.unproject([point.x + DIAGONAL_SIZE, point.y - OTHER_DIAGONAL_SIZE])
 		]);
 		this.crosshair.exiva_line_northeast_2.setLatLngs([
 			this._map.unproject([point.x, point.y]),
-			this._map.unproject([point.x + DOUBLE_DIAGONAL_SIZE, point.y - DIAGONAL_SIZE])
+			this._map.unproject([point.x + OTHER_DIAGONAL_SIZE, point.y - DIAGONAL_SIZE])
 		]);
 		this.crosshair.exiva_line_southeast_1.setLatLngs([
 			this._map.unproject([point.x, point.y]),
-			this._map.unproject([point.x + DOUBLE_DIAGONAL_SIZE, point.y + DIAGONAL_SIZE])
+			this._map.unproject([point.x + OTHER_DIAGONAL_SIZE, point.y + DIAGONAL_SIZE])
 		]);
 		this.crosshair.exiva_line_southeast_2.setLatLngs([
 			this._map.unproject([point.x, point.y]),
-			this._map.unproject([point.x + DIAGONAL_SIZE, point.y + DOUBLE_DIAGONAL_SIZE])
+			this._map.unproject([point.x + DIAGONAL_SIZE, point.y + OTHER_DIAGONAL_SIZE])
 		]);
 		this.crosshair.exiva_line_southwest_1.setLatLngs([
 			this._map.unproject([point.x, point.y]),
-			this._map.unproject([point.x - DIAGONAL_SIZE, point.y + DOUBLE_DIAGONAL_SIZE])
+			this._map.unproject([point.x - DIAGONAL_SIZE, point.y + OTHER_DIAGONAL_SIZE])
 		]);
 		this.crosshair.exiva_line_southwest_2.setLatLngs([
 			this._map.unproject([point.x, point.y]),
-			this._map.unproject([point.x - DOUBLE_DIAGONAL_SIZE, point.y + DIAGONAL_SIZE])
+			this._map.unproject([point.x - OTHER_DIAGONAL_SIZE, point.y + DIAGONAL_SIZE])
 		]);
 		this.crosshair.exiva_line_northwest_1.setLatLngs([
 			this._map.unproject([point.x, point.y]),
-			this._map.unproject([point.x - DOUBLE_DIAGONAL_SIZE, point.y - DIAGONAL_SIZE])
+			this._map.unproject([point.x - OTHER_DIAGONAL_SIZE, point.y - DIAGONAL_SIZE])
 		]);
 		this.crosshair.exiva_line_northwest_2.setLatLngs([
 			this._map.unproject([point.x, point.y]),
-			this._map.unproject([point.x - DIAGONAL_SIZE, point.y - DOUBLE_DIAGONAL_SIZE])
+			this._map.unproject([point.x - DIAGONAL_SIZE, point.y - OTHER_DIAGONAL_SIZE])
 		]);
 	}
 });
