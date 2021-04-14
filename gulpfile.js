@@ -9,7 +9,7 @@ const concat = require('gulp-concat');
 const imagemin = require('gulp-imagemin');
 const replace = require('gulp-replace');
 const server = require('gulp-webserver');
-const uglify = require('gulp-uglify');
+const terser = require('gulp-terser');
 
 gulp.task('clean', function() {
 	return del('dist/*');
@@ -55,7 +55,7 @@ gulp.task('js', function() {
 		'src/_js/map.js'
 	])
 		.pipe(concat('map.js'))
-		.pipe(uglify())
+		.pipe(terser())
 		.pipe(gulp.dest('./dist/'));
 });
 
