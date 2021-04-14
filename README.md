@@ -4,10 +4,10 @@ This is an online Tibia map viewer (in [slippy map](https://wiki.openstreetmap.o
 
 ## Local setup
 
-1. Install [the latest stable version of Node.js](https://nodejs.org/en/download/stable/) if you haven’t already.
-2. Clone this repository and `cd` to its root directory.
-3. Run `npm install` to install the dependencies.
-4. After making changes, run `gulp` to build a new version of the `src` files into the `dist` directory.
+1. Clone this repository and `cd` to its root directory.
+1. Install and use the [expected](https://github.com/tibiamaps/tibia-map/blob/main/.nvmrc) Node.js version: `nvm use`
+1. Run `npm install` to install the dependencies.
+1. After making changes, run `gulp` to build a new version of the `src` files into the `dist` directory.
 
 ## Credits
 
