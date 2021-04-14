@@ -16,12 +16,20 @@ L.Crosshairs = L.LayerGroup.extend({
 		L.Util.setOptions(this, options);
 		this.crosshair = {
 			rectangle: this.calculateExivaRectangle(0, this.options.style),
-			rectangle_exiva_100: this.calculateExivaRectangle(100, this.options.style),
-			rectangle_exiva_250: this.calculateExivaRectangle(250, this.options.style),
 			longitude_line_north: L.polyline([], this.options.style),
 			longitude_line_south: L.polyline([], this.options.style),
 			latitude_line_east: L.polyline([], this.options.style),
 			latitude_line_west: L.polyline([], this.options.style),
+			exiva_rectangle_100: this.calculateExivaRectangle(100, this.options.style),
+			exiva_rectangle_250: this.calculateExivaRectangle(250, this.options.style),
+			exiva_line_northeast_1: L.polyline([], this.options.style),
+			exiva_line_northeast_2: L.polyline([], this.options.style),
+			exiva_line_southeast_1: L.polyline([], this.options.style),
+			exiva_line_southeast_2: L.polyline([], this.options.style),
+			exiva_line_southwest_1: L.polyline([], this.options.style),
+			exiva_line_southwest_2: L.polyline([], this.options.style),
+			exiva_line_northwest_1: L.polyline([], this.options.style),
+			exiva_line_northwest_2: L.polyline([], this.options.style),
 		}
 		for (var layer in this.crosshair) {
 			this.addLayer(this.crosshair[layer]);
@@ -71,13 +79,39 @@ L.Crosshairs = L.LayerGroup.extend({
 	},
 	_showExiva: function() {
 		this.exiva = true;
-		this.addLayer(this.crosshair.rectangle_exiva_100);
-		this.addLayer(this.crosshair.rectangle_exiva_250);
+		this.addLayer(this.crosshair.exiva_rectangle_100);
+		this.addLayer(this.crosshair.exiva_rectangle_250);
+		this.addLayer(this.crosshair.exiva_rectangle_250);
+		this.addLayer(this.crosshair.exiva_line_northeast_1);
+		this.addLayer(this.crosshair.exiva_line_northeast_2);
+		this.addLayer(this.crosshair.exiva_line_southeast_1);
+		this.addLayer(this.crosshair.exiva_line_southeast_2);
+		this.addLayer(this.crosshair.exiva_line_southwest_1);
+		this.addLayer(this.crosshair.exiva_line_southwest_2);
+		this.addLayer(this.crosshair.exiva_line_northwest_1);
+		this.addLayer(this.crosshair.exiva_line_northwest_2);
+		this.removeLayer(this.crosshair.longitude_line_north);
+		this.removeLayer(this.crosshair.longitude_line_south);
+		this.removeLayer(this.crosshair.latitude_line_east);
+		this.removeLayer(this.crosshair.latitude_line_west);
+
 	},
 	_hideExiva: function() {
 		this.exiva = false;
-		this.removeLayer(this.crosshair.rectangle_exiva_100);
-		this.removeLayer(this.crosshair.rectangle_exiva_250);
+		this.removeLayer(this.crosshair.exiva_rectangle_100);
+		this.removeLayer(this.crosshair.exiva_rectangle_250);
+		this.removeLayer(this.crosshair.exiva_line_northeast_1);
+		this.removeLayer(this.crosshair.exiva_line_northeast_2);
+		this.removeLayer(this.crosshair.exiva_line_southeast_1);
+		this.removeLayer(this.crosshair.exiva_line_southeast_2);
+		this.removeLayer(this.crosshair.exiva_line_southwest_1);
+		this.removeLayer(this.crosshair.exiva_line_southwest_2);
+		this.removeLayer(this.crosshair.exiva_line_northwest_1);
+		this.removeLayer(this.crosshair.exiva_line_northwest_2);
+		this.addLayer(this.crosshair.longitude_line_north);
+		this.addLayer(this.crosshair.longitude_line_south);
+		this.addLayer(this.crosshair.latitude_line_east);
+		this.addLayer(this.crosshair.latitude_line_west);
 	},
 	_toggleExiva: function() {
 		if (this.exiva) {
@@ -99,13 +133,13 @@ L.Crosshairs = L.LayerGroup.extend({
 			bounds_exiva_250 = this.calculateExivaBounds(250, x, y);
 		} else {
 			bounds = this.crosshair.rectangle.getBounds();
-			bounds_exiva_100 = this.crosshair.rectangle_exiva_100.getBounds();
-			bounds_exiva_250 = this.crosshair.rectangle_exiva_250.getBounds();
+			bounds_exiva_100 = this.crosshair.exiva_rectangle_100.getBounds();
+			bounds_exiva_250 = this.crosshair.exiva_rectangle_250.getBounds();
 		}
 		var latlng = bounds.getCenter();
 		this.crosshair.rectangle.setBounds(bounds);
-		this.crosshair.rectangle_exiva_100.setBounds(bounds_exiva_100);
-		this.crosshair.rectangle_exiva_250.setBounds(bounds_exiva_250);
+		this.crosshair.exiva_rectangle_100.setBounds(bounds_exiva_100);
+		this.crosshair.exiva_rectangle_250.setBounds(bounds_exiva_250);
 		var point = this._map.project(latlng);
 		this.crosshair.longitude_line_north.setLatLngs([
 			this._map.unproject([point.x, point.y]),
@@ -122,6 +156,41 @@ L.Crosshairs = L.LayerGroup.extend({
 		this.crosshair.latitude_line_west.setLatLngs([
 			this._map.unproject([point.x, point.y]),
 			this._map.unproject([this._map.getPixelBounds().max.x, point.y])
+		]);
+		var DIAGONAL_SIZE = 2500;
+		var DOUBLE_DIAGONAL_SIZE = DIAGONAL_SIZE * 2;
+		// Exiva diagonals.
+		this.crosshair.exiva_line_northeast_1.setLatLngs([
+			this._map.unproject([point.x, point.y]),
+			this._map.unproject([point.x + DIAGONAL_SIZE, point.y - DOUBLE_DIAGONAL_SIZE])
+		]);
+		this.crosshair.exiva_line_northeast_2.setLatLngs([
+			this._map.unproject([point.x, point.y]),
+			this._map.unproject([point.x + DOUBLE_DIAGONAL_SIZE, point.y - DIAGONAL_SIZE])
+		]);
+		this.crosshair.exiva_line_southeast_1.setLatLngs([
+			this._map.unproject([point.x, point.y]),
+			this._map.unproject([point.x + DOUBLE_DIAGONAL_SIZE, point.y + DIAGONAL_SIZE])
+		]);
+		this.crosshair.exiva_line_southeast_2.setLatLngs([
+			this._map.unproject([point.x, point.y]),
+			this._map.unproject([point.x + DIAGONAL_SIZE, point.y + DOUBLE_DIAGONAL_SIZE])
+		]);
+		this.crosshair.exiva_line_southwest_1.setLatLngs([
+			this._map.unproject([point.x, point.y]),
+			this._map.unproject([point.x - DIAGONAL_SIZE, point.y + DOUBLE_DIAGONAL_SIZE])
+		]);
+		this.crosshair.exiva_line_southwest_2.setLatLngs([
+			this._map.unproject([point.x, point.y]),
+			this._map.unproject([point.x - DOUBLE_DIAGONAL_SIZE, point.y + DIAGONAL_SIZE])
+		]);
+		this.crosshair.exiva_line_northwest_1.setLatLngs([
+			this._map.unproject([point.x, point.y]),
+			this._map.unproject([point.x - DOUBLE_DIAGONAL_SIZE, point.y - DIAGONAL_SIZE])
+		]);
+		this.crosshair.exiva_line_northwest_2.setLatLngs([
+			this._map.unproject([point.x, point.y]),
+			this._map.unproject([point.x - DIAGONAL_SIZE, point.y - DOUBLE_DIAGONAL_SIZE])
 		]);
 	}
 });
