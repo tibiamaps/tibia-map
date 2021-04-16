@@ -51,6 +51,7 @@ gulp.task('js', function() {
 		'src/_js/leaflet.coordinates.js',
 		'src/_js/leaflet.crosshairs.js',
 		'src/_js/leaflet.levelbuttons.js',
+		'src/_js/leaflet.exivabutton.js',
 		require.resolve('leaflet-fullscreen'),
 		'src/_js/map.js'
 	])

@@ -171,10 +171,10 @@
 			const bounds = [map.unproject([x, y], 0), map.unproject([x + 1, y + 1], 0)];
 			if (!_this.hoverTile) {
 				_this.hoverTile = L.rectangle(bounds, {
-					'color': '#009eff',
-					'weight': 1,
-					'clickable': false,
-					'pointerEvents': 'none'
+					color: '#009eff',
+					weight: 1,
+					clickable: false,
+					pointerEvents: 'none'
 				}).addTo(map);
 			} else {
 				_this.hoverTile.setBounds(bounds);
@@ -284,7 +284,10 @@
 			}
 		}).addTo(map);
 		L.LevelButtons.btns = L.levelButtons({
-			'layers_widget': layers_widget
+			layers_widget: layers_widget
+		}).addTo(map);
+		L.ExivaButton.btns = L.exivaButton({
+			crosshairs: this.crosshairs
 		}).addTo(map);
 		_this._showHoverTile();
 	};
