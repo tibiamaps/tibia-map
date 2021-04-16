@@ -1,25 +1,25 @@
 L.LevelButtons = L.Control.extend({
-	'options': {
-		'position': 'topleft',
-		'autoZIndex': true
+	options: {
+		position: 'topleft',
+		autoZIndex: true
 	},
 	onAdd: function(map) {
 		this._map = map;
-		var plugin_container = L.DomUtil.create('div', 'leaflet-control-level-buttons-panel leaflet-bar');
+		const plugin_container = L.DomUtil.create('div', 'leaflet-control-level-buttons-panel leaflet-bar');
 
-		var up_button = L.DomUtil.create('a', 'leaflet-control-level-buttons-a', plugin_container);
+		const up_button = L.DomUtil.create('a', 'leaflet-control-level-buttons-a', plugin_container);
 		up_button.textContent = '\u25B2';
 		up_button.href = '#';
 		L.DomEvent.addListener(up_button, 'click', this._onUpButton, this);
 		L.DomEvent.disableClickPropagation(up_button);
 		plugin_container.appendChild(up_button);
 
-		var floor_button = L.DomUtil.create('span', 'leaflet-control-level-buttons-span', plugin_container);
+		const floor_button = L.DomUtil.create('span', 'leaflet-control-level-buttons-span', plugin_container);
 		floor_button.id = 'floor_button';
 
 		plugin_container.appendChild(floor_button);
 
-		var down_button = L.DomUtil.create('a', 'leaflet-control-level-buttons-a', plugin_container);
+		const down_button = L.DomUtil.create('a', 'leaflet-control-level-buttons-a', plugin_container);
 		down_button.textContent = '\u25BC';
 		down_button.href = '#';
 		L.DomEvent.addListener(down_button, 'click', this._onDownButton, this);
@@ -30,7 +30,7 @@ L.LevelButtons = L.Control.extend({
 	},
 	onRemove: function() {},
 	_onUpButton: function(event) {
-		var upper_floor_index = this._tibia_map_obj.floor - 1;
+		const upper_floor_index = this._tibia_map_obj.floor - 1;
 		if (upper_floor_index >= 0) {
 			this._bringToFront(upper_floor_index);
 			this._setFloor(upper_floor_index);
@@ -39,7 +39,7 @@ L.LevelButtons = L.Control.extend({
 		event.preventDefault();
 	},
 	_onDownButton: function(event) {
-		var lower_floor_index = this._tibia_map_obj.floor + 1;
+		const lower_floor_index = this._tibia_map_obj.floor + 1;
 		if (lower_floor_index <= 15) {
 			this._bringToFront(lower_floor_index);
 			this._setFloor(lower_floor_index);
@@ -57,9 +57,9 @@ L.LevelButtons = L.Control.extend({
 		this.options.layers_widget._layerControlInputs[layer_index].click();
 	},
 	_setFloor: function(floor) {
-		var floor_button = L.DomUtil.get('floor_button');
-		var ground_floor = 7; // 0: high above ground; 15: deep underground
-		var text = '';
+		const floor_button = L.DomUtil.get('floor_button');
+		const ground_floor = 7; // 0: high above ground; 15: deep underground
+		let text = '';
 		if (floor == ground_floor) {
 			text = '0';
 		} else if (floor < ground_floor){
@@ -70,7 +70,7 @@ L.LevelButtons = L.Control.extend({
 		floor_button.textContent = text;
 	},
 	_updateUrl: function(floor) {
-		var coordinates = this._tibia_map_obj.getUrlPosition();
+		const coordinates = this._tibia_map_obj.getUrlPosition();
 		coordinates.floor = floor;
 		this._tibia_map_obj.setUrlPosition(coordinates, true);
 	}
