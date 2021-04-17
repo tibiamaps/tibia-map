@@ -9,7 +9,7 @@
 .leaflet-control-level-buttons-span, .leaflet-control-exiva-button {
 	font-size: 18px;
 	background-color: #fff;
-	color: #000;
+	color: #000 !important;
 	font-weight: bold;
 	display: block;
 	text-align: center;
