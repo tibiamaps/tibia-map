@@ -35,7 +35,7 @@ gulp.task('css', function() {
 	gulp.src([
 		require.resolve('leaflet/dist/leaflet.css'),
 		'src/_css/leaflet.coordinates.css',
-		'src/_css/leaflet.levelbuttons.css',
+		'src/_css/leaflet.buttons.css',
 		'node_modules/leaflet-fullscreen/dist/leaflet.fullscreen.css',
 		'src/_css/map.css'
 	])

@@ -6,9 +6,11 @@
 	line-height: 1.8;
 }
 
-.leaflet-control-level-buttons-span {
+.leaflet-control-level-buttons-span, .leaflet-control-exiva-button {
 	font-size: 18px;
 	background-color: #fff;
+	color: #000;
+	font-weight: bold;
 	display: block;
 	text-align: center;
 	border-bottom: 1px solid #ccc;
