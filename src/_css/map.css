@@ -28,3 +28,7 @@ canvas,
 .leaflet-control-zoom-out {
 	line-height: 1.1;
 }
+
+.leaflet-control-container, .leaflet-control-container a {
+	color: #000 !important;
+}
