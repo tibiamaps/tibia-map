@@ -3,7 +3,7 @@ L.Control.Coordinates = L.Control.extend({
 	options: {
 		position: 'bottomright',
 		decimals: 4,
-		decimalSeperator: '.',
+		decimalSeparator: '.',
 		labelTemplateLat: 'X: {y}',
 		labelTemplateLng: 'Y: {x}',
 		labelFormatterLat: undefined,
@@ -12,7 +12,7 @@ L.Control.Coordinates = L.Control.extend({
 		useLatLngOrder: false,
 		centerUserCoordinates: false
 	},
-	'onAdd': function(map) {
+	onAdd: function(map) {
 		this._map = map;
 		const className = 'leaflet-control-coordinates';
 		const container = this._container = L.DomUtil.create('div', className);
@@ -46,16 +46,15 @@ L.Control.Coordinates = L.Control.extend({
 		}
 		return container;
 	},
-	'_createInput': function(classname, container) {
+	_createInput: function(classname, container) {
 		const input = L.DomUtil.create('input', classname, container);
-		input.type = 'text';
 		L.DomEvent.disableClickPropagation(input);
 		return input;
 	},
-	'_clearMarker': function() {
+	_clearMarker: function() {
 		this._map.removeLayer(this._marker);
 	},
-	'_handleKeypress': function(event) {
+	_handleKeypress: function(event) {
 		switch (event.key) {
 			case 'Escape':
 				this.collapse();
@@ -69,9 +68,9 @@ L.Control.Coordinates = L.Control.extend({
 				break;
 		}
 	},
-	'_handleSubmit': function() {
-		const x = L.NumberFormatter.createValidNumber(this._inputX.value, this.options.decimalSeperator);
-		const y = L.NumberFormatter.createValidNumber(this._inputY.value, this.options.decimalSeperator);
+	_handleSubmit: function() {
+		const x = L.NumberFormatter.createValidNumber(this._inputX.value, this.options.decimalSeparator);
+		const y = L.NumberFormatter.createValidNumber(this._inputY.value, this.options.decimalSeparator);
 		if (x !== undefined && y !== undefined) {
 			const marker = this._marker;
 			if (!marker) {
@@ -86,7 +85,7 @@ L.Control.Coordinates = L.Control.extend({
 			}
 		}
 	},
-	'expand': function() {
+	expand: function() {
 		this._showsCoordinates = false;
 		this._map.off('mousemove', this._update, this);
 		L.DomEvent.addListener(this._container, 'mousemove', L.DomEvent.stop);
@@ -94,7 +93,7 @@ L.Control.Coordinates = L.Control.extend({
 		L.DomUtil.addClass(this._labelcontainer, 'uiHidden');
 		L.DomUtil.removeClass(this._inputcontainer, 'uiHidden');
 	},
-	'_createCoordinateLabel': function(ll) {
+	_createCoordinateLabel: function(ll) {
 		const opts = this.options;
 		let x;
 		let y;
@@ -102,14 +101,14 @@ L.Control.Coordinates = L.Control.extend({
 			x = opts.labelFormatterLng(ll.x);
 		} else {
 			x = L.Util.template(opts.labelTemplateLng, {
-				'x': this._getNumber(ll.x, opts)
+				x: this._getNumber(ll.x, opts)
 			});
 		}
 		if (opts.labelFormatterLat) {
 			y = opts.labelFormatterLat(ll.y);
 		} else {
 			y = L.Util.template(opts.labelTemplateLat, {
-				'y': this._getNumber(ll.y, opts)
+				y: this._getNumber(ll.y, opts)
 			});
 		}
 		if (opts.useLatLngOrder) {
@@ -117,21 +116,20 @@ L.Control.Coordinates = L.Control.extend({
 		}
 		return x + ' ' + y;
 	},
-	'_getNumber': function(n, opts) {
-		return L.NumberFormatter.round(n, opts.decimals, opts.decimalSeperator);
+	_getNumber: function(n, opts) {
+		return L.NumberFormatter.round(n, opts.decimals, opts.decimalSeparator);
 	},
-	'collapse': function() {
+	collapse: function() {
 		if (!this._showsCoordinates) {
 			this._map.on('mousemove', this._update, this);
 			this._showsCoordinates = true;
-			const opts = this.options;
 			L.DomEvent.addListener(this._container, 'click', this._switchUI, this);
 			L.DomEvent.removeListener(this._container, 'mousemove', L.DomEvent.stop);
 			L.DomUtil.addClass(this._inputcontainer, 'uiHidden');
 			L.DomUtil.removeClass(this._labelcontainer, 'uiHidden');
 			if (this._marker) {
-				const m = L.marker(),
-					ll = this._marker.getLatLng();
+				const m = L.marker();
+				const ll = this._marker.getLatLng();
 				m.setLatLng(ll);
 				const container = L.DomUtil.create('div', '');
 				const label = L.DomUtil.create('div', '', container);
@@ -140,9 +138,14 @@ L.Control.Coordinates = L.Control.extend({
 				close.textContent = 'Remove';
 				close.href = '#';
 				const stop = L.DomEvent.stopPropagation;
-				L.DomEvent.on(close, 'click', stop).on(close, 'mousedown', stop).on(close, 'dblclick', stop).on(close, 'click', L.DomEvent.preventDefault).on(close, 'click', function() {
-					this._map.removeLayer(m);
-				}, this);
+				L.DomEvent
+					.on(close, 'click', stop)
+					.on(close, 'mousedown', stop)
+					.on(close, 'dblclick', stop)
+					.on(close, 'click', L.DomEvent.preventDefault)
+					.on(close, 'click', function() {
+						this._map.removeLayer(m);
+					}, this);
 				m.bindPopup(container);
 				m.addTo(this._map);
 				this._map.removeLayer(this._marker);
@@ -150,7 +153,7 @@ L.Control.Coordinates = L.Control.extend({
 			}
 		}
 	},
-	'_switchUI': function(event) {
+	_switchUI: function(event) {
 		L.DomEvent.stop(event);
 		L.DomEvent.stopPropagation(event);
 		L.DomEvent.preventDefault(event);
@@ -160,17 +163,17 @@ L.Control.Coordinates = L.Control.extend({
 			this.collapse();
 		}
 	},
-	'onRemove': function(map) {
+	onRemove: function(map) {
 		map.off('mousemove', this._update, this);
 	},
-	'_update': function(event) {
+	_update: function(event) {
 		let pos = event.latlng;
 		const opts = this.options;
 		if (pos) {
 			pos = pos.wrap();
 			this._currentPos = pos;
-			this._inputY.value = L.NumberFormatter.round(pos.lat, opts.decimals, opts.decimalSeperator);
-			this._inputX.value = L.NumberFormatter.round(pos.lng, opts.decimals, opts.decimalSeperator);
+			this._inputY.value = L.NumberFormatter.round(pos.lat, opts.decimals, opts.decimalSeparator);
+			this._inputX.value = L.NumberFormatter.round(pos.lng, opts.decimals, opts.decimalSeparator);
 			this._label.innerHTML = this._createCoordinateLabel(
 				this._map.project(event.latlng, 0)
 			);
@@ -181,7 +184,7 @@ L.control.coordinates = function(options) {
 	return new L.Control.Coordinates(options);
 };
 L.Map.mergeOptions({
-	'coordinateControl': false
+	coordinateControl: false
 });
 L.Map.addInitHook(function() {
 	if (this.options.coordinateControl) {
@@ -190,7 +193,7 @@ L.Map.addInitHook(function() {
 	}
 });
 L.NumberFormatter = {
-	'round': function(num, dec, sep) {
+	round: function(num, dec, sep) {
 		let res = L.Util.formatNum(num, dec) + '';
 		const numbers = res.split('.');
 		if (numbers[1]) {
@@ -202,7 +205,7 @@ L.NumberFormatter = {
 		}
 		return res;
 	},
-	'createValidNumber': function(num, sep) {
+	createValidNumber: function(num, sep) {
 		if (num && num.length > 0) {
 			const numbers = num.split(sep || '.');
 			try {
