@@ -1,4 +1,4 @@
-# Online Tibia map viewer [![Build status](https://travis-ci.org/tibiamaps/tibia-map.svg)](https://travis-ci.org/tibiamaps/tibia-map)
+# Online Tibia map viewer
 
 This is an online Tibia map viewer (in [slippy map](https://wiki.openstreetmap.org/wiki/Slippy_Map) style) that uses the data from the [tibia-map-data](https://github.com/tibiamaps/tibia-map-data) project.
 
