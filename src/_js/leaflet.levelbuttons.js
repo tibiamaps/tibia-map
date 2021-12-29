@@ -26,6 +26,15 @@ L.LevelButtons = L.Control.extend({
 		L.DomEvent.disableClickPropagation(down_button);
 		plugin_container.appendChild(down_button);
 
+		L.DomEvent.addListener(document.documentElement, 'keydown', function(event) {
+			if (event.key === 'k') {
+				this._onUpButton(event);
+			}
+			if (event.key === 'j') {
+				this._onDownButton(event);
+			}
+		}, this);
+
 		return plugin_container;
 	},
 	onRemove: function() {},
