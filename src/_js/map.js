@@ -186,7 +186,7 @@
 		const icons = []
 		const symbols = ['!', '$', '?', 'bag', 'checkmark', 'cross', 'crossmark', 'down', 'flag', 'lock', 'mouth', 'red down', 'red left', 'red right', 'red up', 'skull', 'spear', 'star', 'sword', 'up'];
 		symbols.forEach(s => {
-			icons[s] = L.icon({iconSize: [11, 11], className: 'leaflet-icon', iconUrl: s.replace('!', 'exclamation').replace('$', 'dollar').replace('?', 'question').replace(' ', '-') + '.png'});
+			icons[s] = L.icon({iconSize: [11, 11], className: 'leaflet-marker-icon', iconUrl: s.replace('!', 'exclamation').replace('$', 'dollar').replace('?', 'question').replace(' ', '-') + '.png'});
 		});
 
 		const xhr = new XMLHttpRequest();
@@ -208,14 +208,14 @@
 	TibiaMap.prototype._toggleMarkers = function () {
 		this.showMarkers = !this.showMarkers;
 		this._tryShowMarkers();
-	}
+	};
 	TibiaMap.prototype._tryShowMarkers = function () {
 		const _this = this;
 		this.markersLayers.forEach((layer, floor) => {
 			if (floor === _this.floor && _this.showMarkers) { _this.map.addLayer(layer); }
 			else { _this.map.removeLayer(layer); }
-		})
-	}
+		});
+	};
 
 
 	TibiaMap.prototype.init = function() {
@@ -331,7 +331,7 @@
 			map: _this
 		}).addTo(map);
 		_this._showHoverTile();
-		_this._loadMarkers()
+		_this._loadMarkers();
 	};
 
 	const map = new TibiaMap();

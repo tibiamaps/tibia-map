@@ -38,6 +38,6 @@ canvas,
 	background-color: lightgray;
 }
 
-.leaflet-icon {
+.leaflet-marker-icon {
 	image-rendering: pixelated;
 }
