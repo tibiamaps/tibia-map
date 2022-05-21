@@ -7,13 +7,13 @@
 		this.markersLayers = [];
 		this.showMarkers = true;
 	}
-	const URL_PREFIX = 'https://tibiamaps.github.io/tibia-map-data/mapper/';
+	const URL_PREFIX = 'https://tibiamaps.github.io/tibia-map-data/';
 	// `KNOWN_TILES` is a placeholder for the whitelist of known tiles:
 	// https://tibiamaps.github.io/tibia-map-data/mapper/tiles.json
 	let KNOWN_TILES = null;
 	const fetchKnownTiles = function() {
 		const xhr = new XMLHttpRequest();
-		xhr.open('GET', URL_PREFIX + 'tiles.json', true);
+		xhr.open('GET', URL_PREFIX + 'mapper/tiles.json', true);
 		xhr.responseType = 'json';
 		xhr.onload = function() {
 			if (xhr.status === 200) {
@@ -150,7 +150,7 @@
 				ctx.drawImage(image, 0, 0, 256, 256);
 				done(null, tile);
 			};
-			image.src = URL_PREFIX + 'Minimap_Color_' + tileId + '.png';
+			image.src = URL_PREFIX + 'mapper/Minimap_Color_' + tileId + '.png';
 			return tile;
 		};
 		return mapLayer;
@@ -184,21 +184,33 @@
 	TibiaMap.prototype._loadMarkers = function () {
 		const _this = this;
 		const icons = []
-		const symbols = ['!', '$', '?', 'bag', 'checkmark', 'cross', 'crossmark', 'down', 'flag', 'lock', 'mouth', 'red down', 'red left', 'red right', 'red up', 'skull', 'spear', 'star', 'sword', 'up'];
+		// https://tibiamaps.io/guides/map-file-format#map-marker-data
+		const symbols = [
+			'!', '$', '?', 'bag', 'checkmark', 'cross', 'crossmark', 'down',
+			'flag', 'lock', 'mouth', 'red down', 'red left', 'red right',
+			'red up', 'skull', 'spear', 'star', 'sword', 'up',
+		];
+		const IMAGE_URL_PREFIX = location.origin === 'https://tibiamaps.io' ? '/_img/marker-icons/' : '_img/marker-icons/';
 		symbols.forEach(s => {
-			icons[s] = L.icon({iconSize: [11, 11], className: 'leaflet-marker-icon', iconUrl: s.replace('!', 'exclamation').replace('$', 'dollar').replace('?', 'question').replace(' ', '-') + '.png'});
+			icons[s] = L.icon({
+				iconSize: [11, 11],
+				className: 'leaflet-marker-icon',
+				iconUrl: IMAGE_URL_PREFIX + s.replace('!', 'exclamation').replace('$', 'dollar').replace('?', 'question').replace(' ', '-') + '.png',
+			});
 		});
 
 		const xhr = new XMLHttpRequest();
-		xhr.open('GET', 'https://tibiamaps.github.io/tibia-map-data/markers.json', true);
+		xhr.open('GET', URL_PREFIX + 'markers.json');
 		xhr.responseType = 'json';
-		xhr.onload = function () {
+		xhr.onload = function() {
 			if (xhr.status === 200) {
 				xhr.response.forEach(m => {
 					const options = {'title': m.description};
 					if (m.icon && m.icon in icons) { options.icon = icons[m.icon]; }
 					if (!_this.markersLayers[m.z]) { _this.markersLayers[m.z] = new L.layerGroup(); }
-					_this.markersLayers[m.z].addLayer(L.marker(_this.map.unproject([m.x + 0.5, m.y + 0.5], 0), options));
+					_this.markersLayers[m.z].addLayer(
+						L.marker(_this.map.unproject([m.x + 0.5, m.y + 0.5], 0), options)
+					);
 				});
 				_this._tryShowMarkers();
 			}

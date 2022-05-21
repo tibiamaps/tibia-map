@@ -65,12 +65,19 @@ gulp.task('img', function() {
 	gulp.src([
 		'node_modules/leaflet-fullscreen/dist/*.png',
 		'src/_css/*.png',
-		'src/_img/*.png'
 	])
 		//.pipe(imagemin({
 		//	'optimizationLevel': 7
 		//}))
 		.pipe(gulp.dest('./dist/'));
+
+		gulp.src([
+		'src/_img/marker-icons/*.png',
+	])
+		//.pipe(imagemin({
+		//	'optimizationLevel': 7
+		//}))
+		.pipe(gulp.dest('./dist/_img/marker-icons/'));
 });
 
 gulp.task('copy', function() {
