@@ -52,6 +52,7 @@ gulp.task('js', function() {
 		'src/_js/leaflet.crosshairs.js',
 		'src/_js/leaflet.levelbuttons.js',
 		'src/_js/leaflet.exivabutton.js',
+		'src/_js/leaflet.markersbutton.js',
 		require.resolve('leaflet-fullscreen'),
 		'src/_js/map.js'
 	])
@@ -63,7 +64,8 @@ gulp.task('js', function() {
 gulp.task('img', function() {
 	gulp.src([
 		'node_modules/leaflet-fullscreen/dist/*.png',
-		'src/_css/*.png'
+		'src/_css/*.png',
+		'src/_img/*.png'
 	])
 		//.pipe(imagemin({
 		//	'optimizationLevel': 7

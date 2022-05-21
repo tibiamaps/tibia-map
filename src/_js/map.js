@@ -4,8 +4,8 @@
 		this.crosshairs = null;
 		this.floor = 7;
 		this.mapFloors = [];
-		this.mapDataStore = [];
-		this.waypoints = [];
+		this.markersLayers = [];
+		this.showMarkers = true;
 	}
 	const URL_PREFIX = 'https://tibiamaps.github.io/tibia-map-data/mapper/';
 	// `KNOWN_TILES` is a placeholder for the whitelist of known tiles:
@@ -181,6 +181,43 @@
 			}
 		});
 	};
+	TibiaMap.prototype._loadMarkers = function () {
+		const _this = this;
+		const icons = []
+		const symbols = ['!', '$', '?', 'bag', 'checkmark', 'cross', 'crossmark', 'down', 'flag', 'lock', 'mouth', 'red down', 'red left', 'red right', 'red up', 'skull', 'spear', 'star', 'sword', 'up'];
+		symbols.forEach(s => {
+			icons[s] = L.icon({iconSize: [11, 11], className: 'leaflet-marker-icon', iconUrl: s.replace('!', 'exclamation').replace('$', 'dollar').replace('?', 'question').replace(' ', '-') + '.png'});
+		});
+
+		const xhr = new XMLHttpRequest();
+		xhr.open('GET', 'https://tibiamaps.github.io/tibia-map-data/markers.json', true);
+		xhr.responseType = 'json';
+		xhr.onload = function () {
+			if (xhr.status === 200) {
+				xhr.response.forEach(m => {
+					const options = {'title': m.description};
+					if (m.icon && m.icon in icons) { options.icon = icons[m.icon]; }
+					if (!_this.markersLayers[m.z]) { _this.markersLayers[m.z] = new L.layerGroup(); }
+					_this.markersLayers[m.z].addLayer(L.marker(_this.map.unproject([m.x + 0.5, m.y + 0.5], 0), options));
+				});
+				_this._tryShowMarkers();
+			}
+		};
+		xhr.send();
+	};
+	TibiaMap.prototype._toggleMarkers = function () {
+		this.showMarkers = !this.showMarkers;
+		this._tryShowMarkers();
+	};
+	TibiaMap.prototype._tryShowMarkers = function () {
+		const _this = this;
+		this.markersLayers.forEach((layer, floor) => {
+			if (floor === _this.floor && _this.showMarkers) { _this.map.addLayer(layer); }
+			else { _this.map.removeLayer(layer); }
+		});
+	};
+
+
 	TibiaMap.prototype.init = function() {
 		const _this = this;
 		modifyLeaflet();
@@ -252,6 +289,7 @@
 		});
 		map.on('baselayerchange', function(layer) {
 			_this.floor = layer.layer.options.floor;
+			_this._tryShowMarkers();
 		});
 		map.on('click', function(event) {
 			const coords = L.CRS.CustomZoom.latLngToPoint(event.latlng, 0);
@@ -289,7 +327,11 @@
 		L.ExivaButton.btns = L.exivaButton({
 			crosshairs: this.crosshairs
 		}).addTo(map);
+		L.MarkersButton.btns = L.markersButton({
+			map: _this
+		}).addTo(map);
 		_this._showHoverTile();
+		_this._loadMarkers();
 	};
 
 	const map = new TibiaMap();
@@ -342,6 +384,10 @@
 			// Press `E` to toggle the exiva overlay.
 			if (event.key === 'e') {
 				map.crosshairs._toggleExiva();
+			}
+			// Press `M` to toggle the markers overlay.
+			if (event.key === 'm') {
+				map._toggleMarkers();
 			}
 		});
 	}
