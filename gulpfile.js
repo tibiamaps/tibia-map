@@ -61,7 +61,7 @@ gulp.task('js', function() {
 		.pipe(gulp.dest('./dist/'));
 });
 
-gulp.task('img', function() {
+gulp.task('css-img', function() {
 	gulp.src([
 		'node_modules/leaflet-fullscreen/dist/*.png',
 		'src/_css/*.png',
@@ -71,7 +71,17 @@ gulp.task('img', function() {
 		//}))
 		.pipe(gulp.dest('./dist/'));
 
-		gulp.src([
+	gulp.src([
+		'src/_img/marker-icons/*.png',
+	])
+		//.pipe(imagemin({
+		//	'optimizationLevel': 7
+		//}))
+		.pipe(gulp.dest('./dist/_img/marker-icons/'));
+});
+
+gulp.task('img-img', function() {
+	gulp.src([
 		'src/_img/marker-icons/*.png',
 	])
 		//.pipe(imagemin({
@@ -99,5 +109,5 @@ gulp.task('serve', function() {
 		}));
 });
 
-gulp.task('build', ['clean', 'html', 'css', 'js', 'img', 'copy']);
+gulp.task('build', ['clean', 'html', 'css', 'js', 'css-img', 'img-img', 'copy']);
 gulp.task('default', ['build', 'serve']);

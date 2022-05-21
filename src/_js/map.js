@@ -199,8 +199,10 @@
 			});
 		});
 
+		const mapContainer = document.querySelector('#map');
+		const MARKERS_URL_PATH = mapContainer.dataset.markerPack ? mapContainer.dataset.markerPack : 'markers.json';
 		const xhr = new XMLHttpRequest();
-		xhr.open('GET', URL_PREFIX + 'markers.json');
+		xhr.open('GET', URL_PREFIX + MARKERS_URL_PATH);
 		xhr.responseType = 'json';
 		xhr.onload = function() {
 			if (xhr.status === 200) {
