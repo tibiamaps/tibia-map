@@ -6,7 +6,9 @@
 	line-height: 1.8;
 }
 
-.leaflet-control-level-buttons-span, .leaflet-control-exiva-button {
+.leaflet-control-level-buttons-span,
+.leaflet-control-exiva-button,
+.leaflet-control-markers-button {
 	font-size: 18px;
 	background-color: #fff;
 	font-weight: bold;

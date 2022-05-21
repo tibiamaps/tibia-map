@@ -184,9 +184,9 @@
 	TibiaMap.prototype._loadMarkers = function () {
 		const _this = this;
 		const icons = []
-		const symbols = ["!", "$", "?", "bag", "checkmark", "cross", "crossmark", "down", "flag", "lock", "mouth", "red down", "red left", "red right", "red up", "skull", "spear", "star", "sword", "up"];
+		const symbols = ['!', '$', '?', 'bag', 'checkmark', 'cross', 'crossmark', 'down', 'flag', 'lock', 'mouth', 'red down', 'red left', 'red right', 'red up', 'skull', 'spear', 'star', 'sword', 'up'];
 		symbols.forEach(s => {
-			icons[s] = L.icon({iconSize: [11, 11], iconUrl: s.replace("!", "exclamation").replace("$", "dollar").replace("?", "question").replace(" ", "_") + ".png"});
+			icons[s] = L.icon({iconSize: [11, 11], className: 'leaflet-icon', iconUrl: s.replace('!', 'exclamation').replace('$', 'dollar').replace('?', 'question').replace(' ', '-') + '.png'});
 		});
 
 		const xhr = new XMLHttpRequest();
@@ -195,7 +195,7 @@
 		xhr.onload = function () {
 			if (xhr.status === 200) {
 				xhr.response.forEach(m => {
-					let options = {'title': m.description};
+					const options = {'title': m.description};
 					if (m.icon && m.icon in icons) { options.icon = icons[m.icon]; }
 					if (!_this.markersLayers[m.z]) { _this.markersLayers[m.z] = new L.layerGroup(); }
 					_this.markersLayers[m.z].addLayer(L.marker(_this.map.unproject([m.x + 0.5, m.y + 0.5], 0), options));
@@ -207,13 +207,13 @@
 	};
 	TibiaMap.prototype._toggleMarkers = function () {
 		this.showMarkers = !this.showMarkers;
-		this._tryShowMarkers()
+		this._tryShowMarkers();
 	}
 	TibiaMap.prototype._tryShowMarkers = function () {
 		const _this = this;
-		this.markersLayers.forEach((l,f) => {
-			if (f === _this.floor && _this.showMarkers) { _this.map.addLayer(l); }
-			else { _this.map.removeLayer(l); }
+		this.markersLayers.forEach((layer, floor) => {
+			if (floor === _this.floor && _this.showMarkers) { _this.map.addLayer(layer); }
+			else { _this.map.removeLayer(layer); }
 		})
 	}
 
@@ -289,7 +289,7 @@
 		});
 		map.on('baselayerchange', function(layer) {
 			_this.floor = layer.layer.options.floor;
-			_this._tryShowMarkers()
+			_this._tryShowMarkers();
 		});
 		map.on('click', function(event) {
 			const coords = L.CRS.CustomZoom.latLngToPoint(event.latlng, 0);

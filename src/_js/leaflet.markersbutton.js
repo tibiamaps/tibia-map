@@ -6,8 +6,8 @@ L.MarkersButton = L.Control.extend({
 	},
 	onAdd: function(map) {
 		this._map = map;
-		const container = L.DomUtil.create('div', 'leaflet-control-exiva-button-panel leaflet-bar leaflet-control');
-		const button = L.DomUtil.create('a', 'leaflet-control-exiva-button leaflet-bar-part', container);
+		const container = L.DomUtil.create('div', 'leaflet-control-markers-button-panel leaflet-bar leaflet-control');
+		const button = L.DomUtil.create('a', 'leaflet-control-markers-button leaflet-bar-part', container);
 		button.textContent = 'M';
 		button.title = 'Toggle markers overlay'
 		button.href = '#';

@@ -37,3 +37,7 @@ canvas,
 .leaflet-control-container a:focus {
 	background-color: lightgray;
 }
+
+.leaflet-icon {
+	image-rendering: pixelated;
+}
