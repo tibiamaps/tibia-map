@@ -200,24 +200,48 @@
 		});
 
 		const mapContainer = document.querySelector('#map');
-		const MARKERS_URL_PATH = mapContainer.dataset.markerPack ? mapContainer.dataset.markerPack : 'markers.json';
-		const xhr = new XMLHttpRequest();
-		xhr.open('GET', URL_PREFIX + MARKERS_URL_PATH);
-		xhr.responseType = 'json';
-		xhr.onload = function() {
-			if (xhr.status === 200) {
-				xhr.response.forEach(m => {
-					const options = {'title': m.description};
-					if (m.icon && m.icon in icons) { options.icon = icons[m.icon]; }
-					if (!_this.markersLayers[m.z]) { _this.markersLayers[m.z] = new L.layerGroup(); }
-					_this.markersLayers[m.z].addLayer(
-						L.marker(_this.map.unproject([m.x + 0.5, m.y + 0.5], 0), options)
-					);
-				});
-				_this._tryShowMarkers();
-			}
-		};
-		xhr.send();
+		const urlParams = new URLSearchParams(window.location.search);
+		// Possible markers sources
+		// A) https://example.com?m=<base64-json-str>#32368,32198,7:0
+		// B) https://example.com?mf=https://example.com/pack.json#32368,32198,7:0
+		// C) <div id="map" data-marker-json="<json-str>" ...>
+		// D) <div id="map" data-marker-pack="https://example.com/pack.json" ...>
+		// E) fallback: https://tibiamaps.github.io/tibia-map-data/markers.json
+		if (urlParams.get('m')) {
+			buildMarkerLayers(atob(JSON.parse(urlParams.get('m'))));
+		} else if (urlParams.get('mf')) {
+			loadMarkersPack(urlParams.get('mf'));
+		} else if (mapContainer.dataset.markerJson) {
+			buildMarkerLayers(JSON.parse(mapContainer.dataset.markerJson));
+		} else if (mapContainer.dataset.markerPack) {
+			loadMarkersPack(URL_PREFIX + mapContainer.dataset.markerPack);
+		} else {
+			loadMarkersPack(URL_PREFIX + 'markers.json');
+		}
+
+		function loadMarkersPack(url) {
+			const xhr = new XMLHttpRequest();
+			xhr.open('GET', url);
+			xhr.responseType = 'json';
+			xhr.onload = function () {
+				if (xhr.status === 200) {
+					buildMarkerLayers(xhr.response);
+					_this._tryShowMarkers();
+				}
+			};
+			xhr.send();
+		}
+
+		function buildMarkerLayers(array) {
+			array.forEach(m => {
+				const options = {'title': m.description};
+				if (m.icon && m.icon in icons) { options.icon = icons[m.icon]; }
+				if (!_this.markersLayers[m.z]) { _this.markersLayers[m.z] = new L.layerGroup(); }
+				_this.markersLayers[m.z].addLayer(
+					L.marker(_this.map.unproject([m.x + 0.5, m.y + 0.5], 0), options)
+				);
+			});
+		}
 	};
 	TibiaMap.prototype._toggleMarkers = function () {
 		this.showMarkers = !this.showMarkers;
