@@ -213,8 +213,8 @@
 				if (urlParams.get('markersUrl')) return urlParams.get('markersUrl');
 				if (mapContainer.dataset.markers) return JSON.parse(mapContainer.dataset.markers);
 				if (mapContainer.dataset.markersUrl) return URL_PREFIX + mapContainer.dataset.markersUrl;
-			} catch (e) {
-				console.error("Invalid custom markers data, using default markers")
+			} catch (error) {
+				console.error('Invalid custom markers data. Falling back to default markers');
 			}
 			return URL_PREFIX + 'markers.json';
 		}
