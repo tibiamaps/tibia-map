@@ -5,7 +5,7 @@
 		this.floor = 7;
 		this.mapFloors = [];
 		this.markersLayers = [];
-		this.showMarkers = true;
+		this.markersLayerVisible = false;
 		this.options = {};
 	}
 	const URL_PREFIX = 'https://tibiamaps.github.io/tibia-map-data/';
@@ -251,13 +251,17 @@
 		}
 	};
 	TibiaMap.prototype._toggleMarkers = function () {
-		this.showMarkers = !this.showMarkers;
-		this._tryShowMarkers();
+		this.markersLayerVisible = !this.markersLayerVisible;
+		if (this.markersLayers.length === 0) {
+			this._loadMarkers(); // Lazy load in case markers were originally disabled
+		} else {
+			this._tryShowMarkers();
+		}
 	};
 	TibiaMap.prototype._tryShowMarkers = function () {
 		const _this = this;
 		this.markersLayers.forEach((layer, floor) => {
-			if (floor === _this.floor && _this.showMarkers) { _this.map.addLayer(layer); }
+			if (floor === _this.floor && _this.markersLayerVisible) { _this.map.addLayer(layer); }
 			else { _this.map.removeLayer(layer); }
 		});
 	};
@@ -379,6 +383,7 @@
 			map: _this
 		}).addTo(map);
 		if (_this.options.markersEnabled === 'true') {
+			_this.markersLayerVisible = true;
 			_this._loadMarkers();
 		}
 	};
