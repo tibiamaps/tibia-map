@@ -205,14 +205,14 @@
 			// Possible markers sources
 			// A) https://example.com?markers=<base64-json-str>#32368,32198,7:0
 			// B) https://example.com?markersUrl=https://example.com/pack.json#32368,32198,7:0
-			// C) <div id="map" data-marker="<json-str>" ...>
-			// D) <div id="map" data-marker-url="https://example.com/pack.json" ...>
+			// C) <div id="map" data-markers="<json-str>" …>
+			// D) <div id="map" data-markers-url="https://example.com/pack.json" …>
 			// E) fallback: https://tibiamaps.github.io/tibia-map-data/markers.json
 			try {
 				if (urlParams.get('markers')) return JSON.parse(atob(urlParams.get('markers')));
 				if (urlParams.get('markersUrl')) return urlParams.get('markersUrl');
 				if (mapContainer.dataset.markers) return JSON.parse(mapContainer.dataset.markers);
-				if (mapContainer.dataset.markersUrl) return URL_PREFIX + mapContainer.dataset.markersUrl;
+				if (mapContainer.dataset.markersUrl) return mapContainer.dataset.markersUrl;
 			} catch (error) {
 				console.error('Invalid custom markers data. Falling back to default markers');
 			}
