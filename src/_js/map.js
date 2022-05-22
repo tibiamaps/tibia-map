@@ -199,25 +199,56 @@
 			});
 		});
 
-		const mapContainer = document.querySelector('#map');
-		const MARKERS_URL_PATH = mapContainer.dataset.markerPack ? mapContainer.dataset.markerPack : 'markers.json';
-		const xhr = new XMLHttpRequest();
-		xhr.open('GET', URL_PREFIX + MARKERS_URL_PATH);
-		xhr.responseType = 'json';
-		xhr.onload = function() {
-			if (xhr.status === 200) {
-				xhr.response.forEach(m => {
-					const options = {'title': m.description};
-					if (m.icon && m.icon in icons) { options.icon = icons[m.icon]; }
-					if (!_this.markersLayers[m.z]) { _this.markersLayers[m.z] = new L.layerGroup(); }
-					_this.markersLayers[m.z].addLayer(
-						L.marker(_this.map.unproject([m.x + 0.5, m.y + 0.5], 0), options)
-					);
-				});
-				_this._tryShowMarkers();
+		function getMarkersSource() {
+			const mapContainer = document.querySelector('#map');
+			const urlParams = new URLSearchParams(window.location.search);
+			// Possible markers sources
+			// A) https://example.com?markers=<base64-json-str>#32368,32198,7:0
+			// B) https://example.com?markersUrl=https://example.com/pack.json#32368,32198,7:0
+			// C) <div id="map" data-marker="<json-str>" ...>
+			// D) <div id="map" data-marker-url="https://example.com/pack.json" ...>
+			// E) fallback: https://tibiamaps.github.io/tibia-map-data/markers.json
+			try {
+				if (urlParams.get('markers')) return JSON.parse(atob(urlParams.get('markers')));
+				if (urlParams.get('markersUrl')) return urlParams.get('markersUrl');
+				if (mapContainer.dataset.markers) return JSON.parse(mapContainer.dataset.markers);
+				if (mapContainer.dataset.markersUrl) return URL_PREFIX + mapContainer.dataset.markersUrl;
+			} catch (error) {
+				console.error('Invalid custom markers data. Falling back to default markers');
 			}
-		};
-		xhr.send();
+			return URL_PREFIX + 'markers.json';
+		}
+
+		const markersSource = getMarkersSource();
+		if (typeof markersSource === 'string') {
+			loadMarkersFromUrl(markersSource);
+		} else {
+			buildMarkerLayers(markersSource);
+		}
+
+		function loadMarkersFromUrl(url) {
+			const xhr = new XMLHttpRequest();
+			xhr.open('GET', url);
+			xhr.responseType = 'json';
+			xhr.onload = function () {
+				if (xhr.status === 200) {
+					buildMarkerLayers(xhr.response);
+				}
+			};
+			xhr.send();
+		}
+
+		function buildMarkerLayers(markersData) {
+			markersData.forEach(m => {
+				const options = {'title': m.description};
+				if (m.icon && m.icon in icons) { options.icon = icons[m.icon]; }
+				if (!_this.markersLayers[m.z]) { _this.markersLayers[m.z] = new L.layerGroup(); }
+				_this.markersLayers[m.z].addLayer(
+					L.marker(_this.map.unproject([m.x + 0.5, m.y + 0.5], 0), options)
+				);
+			});
+			_this._tryShowMarkers();
+		}
 	};
 	TibiaMap.prototype._toggleMarkers = function () {
 		this.showMarkers = !this.showMarkers;
