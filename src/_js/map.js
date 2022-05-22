@@ -23,7 +23,7 @@
 		xhr.send();
 	};
 	fetchKnownTiles();
-	const isEmbed = location.pathname.indexOf('/embed') !== -1;
+	const isEmbed = location.pathname.indexOf('/embed') !== -1 || location.pathname.indexOf('/poi') !== -1;
 	const setUrlPosition = function(coords, forceHash) {
 		const url = '#' + coords.x + ',' + coords.y + ',' + coords.floor + ':' + coords.zoom;
 		if (
