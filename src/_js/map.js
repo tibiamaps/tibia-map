@@ -6,6 +6,7 @@
 		this.mapFloors = [];
 		this.markersLayers = [];
 		this.showMarkers = true;
+		this.options = {}
 	}
 	const URL_PREFIX = 'https://tibiamaps.github.io/tibia-map-data/';
 	// `KNOWN_TILES` is a placeholder for the whitelist of known tiles:
@@ -200,7 +201,6 @@
 		});
 
 		function getMarkersSource() {
-			const mapContainer = document.querySelector('#map');
 			const urlParams = new URLSearchParams(window.location.search);
 			// Possible markers sources
 			// A) https://example.com?markers=<base64-json-str>#32368,32198,7:0
@@ -211,8 +211,8 @@
 			try {
 				if (urlParams.get('markers')) return JSON.parse(atob(urlParams.get('markers')));
 				if (urlParams.get('markersUrl')) return urlParams.get('markersUrl');
-				if (mapContainer.dataset.markers) return JSON.parse(mapContainer.dataset.markers);
-				if (mapContainer.dataset.markersUrl) return mapContainer.dataset.markersUrl;
+				if (_this.options.markers) return JSON.parse(_this.options.markers);
+				if (_this.options.markersUrl) return _this.options.markersUrl;
 			} catch (error) {
 				console.error('Invalid custom markers data. Falling back to default markers');
 			}
@@ -263,8 +263,9 @@
 	};
 
 
-	TibiaMap.prototype.init = function() {
+	TibiaMap.prototype.init = function(options) {
 		const _this = this;
+		_this.options = options;
 		modifyLeaflet();
 		// Taken from https://tibiamaps.github.io/tibia-map-data/bounds.json, which
 		// rarely (if ever) changes.
@@ -372,15 +373,19 @@
 		L.ExivaButton.btns = L.exivaButton({
 			crosshairs: this.crosshairs
 		}).addTo(map);
-		L.MarkersButton.btns = L.markersButton({
-			map: _this
-		}).addTo(map);
 		_this._showHoverTile();
-		_this._loadMarkers();
+
+		if (_this.options.markersEnabled === 'true') {
+			L.MarkersButton.btns = L.markersButton({
+				map: _this
+			}).addTo(map);
+			_this._loadMarkers();
+		}
 	};
 
+	const mapContainer = document.querySelector('#map');
 	const map = new TibiaMap();
-	map.init();
+	map.init(mapContainer.dataset);
 	L.LevelButtons.btns.setTibiaMap(map);
 
 	const fakeClick = function(target) {
