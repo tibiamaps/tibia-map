@@ -220,8 +220,12 @@
 		}
 
 		const markersSource = getMarkersSource();
-		if (typeof markersSource === 'string') { loadMarkersFromUrl(markersSource);	}
-		else { buildMarkerLayers(markersSource); }
+```suggestion
+		if (typeof markersSource === 'string') {
+			loadMarkersFromUrl(markersSource);
+		} else {
+			buildMarkerLayers(markersSource);
+		}
 
 		function loadMarkersFromUrl(url) {
 			const xhr = new XMLHttpRequest();
