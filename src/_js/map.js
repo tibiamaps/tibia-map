@@ -220,7 +220,6 @@
 		}
 
 		const markersSource = getMarkersSource();
-```suggestion
 		if (typeof markersSource === 'string') {
 			loadMarkersFromUrl(markersSource);
 		} else {
