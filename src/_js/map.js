@@ -6,7 +6,7 @@
 		this.mapFloors = [];
 		this.markersLayers = [];
 		this.showMarkers = true;
-		this.options = {}
+		this.options = {};
 	}
 	const URL_PREFIX = 'https://tibiamaps.github.io/tibia-map-data/';
 	// `KNOWN_TILES` is a placeholder for the whitelist of known tiles:
@@ -375,10 +375,10 @@
 		}).addTo(map);
 		_this._showHoverTile();
 
+		L.MarkersButton.btns = L.markersButton({
+			map: _this
+		}).addTo(map);
 		if (_this.options.markersEnabled === 'true') {
-			L.MarkersButton.btns = L.markersButton({
-				map: _this
-			}).addTo(map);
 			_this._loadMarkers();
 		}
 	};
