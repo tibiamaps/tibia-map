@@ -7,6 +7,7 @@
 		this.markersLayers = [];
 		this.markersLayerVisible = false;
 		this.options = {};
+		this.isColorMap = true;
 	}
 	const URL_PREFIX = 'https://tibiamaps.github.io/tibia-map-data/';
 	// `KNOWN_TILES` is a placeholder for the whitelist of known tiles:
@@ -105,7 +106,8 @@
 		});
 	};
 	TibiaMap.prototype._createMapFloorLayer = function(floor) {
-		const mapLayer = this.mapFloors[floor] = new L.GridLayer({
+		const _this = this;
+		const mapLayer = _this.mapFloors[floor] = new L.GridLayer({
 			'floor': floor
 		});
 		mapLayer.getTileSize = function() {
@@ -151,7 +153,9 @@
 				ctx.drawImage(image, 0, 0, 256, 256);
 				done(null, tile);
 			};
-			image.src = URL_PREFIX + 'mapper/Minimap_Color_' + tileId + '.png';
+			image.src = URL_PREFIX + 'mapper/Minimap_' + (
+				_this.isColorMap ? 'Color' : 'WaypointCost'
+			) + '_' + tileId + '.png';
 			return tile;
 		};
 		return mapLayer;
@@ -250,7 +254,7 @@
 			_this._tryShowMarkers();
 		}
 	};
-	TibiaMap.prototype._toggleMarkers = function () {
+	TibiaMap.prototype._toggleMarkers = function() {
 		this.markersLayerVisible = !this.markersLayerVisible;
 		if (this.markersLayers.length === 0) {
 			this._loadMarkers(); // Lazy load in case markers were originally disabled
@@ -258,7 +262,13 @@
 			this._tryShowMarkers();
 		}
 	};
-	TibiaMap.prototype._tryShowMarkers = function () {
+	TibiaMap.prototype._toggleMapType = function() {
+		this.isColorMap = !this.isColorMap;
+		// TODO: Find a cleaner way to re-render the map.
+		const map = this.map;
+		map._resetView(map.getCenter(), map.getZoom(), true);
+	};
+	TibiaMap.prototype._tryShowMarkers = function() {
 		const _this = this;
 		this.markersLayers.forEach((layer, floor) => {
 			if (floor === _this.floor && _this.markersLayerVisible) { _this.map.addLayer(layer); }
@@ -443,6 +453,10 @@
 			// Press `M` to toggle the markers overlay.
 			if (event.key === 'm') {
 				map._toggleMarkers();
+			}
+			// Press `P` to toggle the map type (color data vs. pathfinding data).
+			if (event.key === 'p') {
+				map._toggleMapType();
 			}
 		});
 	}
