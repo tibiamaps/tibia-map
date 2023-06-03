@@ -1,4 +1,6 @@
 (function() {
+
+	const IS_TIBIAMAPS_IO = location.origin === 'https://tibiamaps.io';
 	function TibiaMap() {
 		this.map = null;
 		this.crosshairs = null;
@@ -195,7 +197,7 @@
 			'flag', 'lock', 'mouth', 'red down', 'red left', 'red right',
 			'red up', 'skull', 'spear', 'star', 'sword', 'up',
 		];
-		const IMAGE_URL_PREFIX = location.origin === 'https://tibiamaps.io' ? '/_img/marker-icons/' : '_img/marker-icons/';
+		const IMAGE_URL_PREFIX = IS_TIBIAMAPS_IO ? '/_img/marker-icons/' : '_img/marker-icons/';
 		symbols.forEach(s => {
 			icons[s] = L.icon({
 				iconSize: [11, 11],
@@ -410,7 +412,8 @@
 	};
 
 	const unembed = function(url) {
-		return url.replace('/embed', '');
+		const updated = url.replace('/embed', '').replace('?forceBlankTarget', '');
+		return updated;
 	};
 
 	const fullscreen = document.querySelector('.leaflet-control-fullscreen-button');
@@ -418,9 +421,17 @@
 	if (isEmbed) {
 		// Ensure right-click → copy URL works.
 		fullscreen.href = unembed(location.href);
+		const forceBlankTarget = new URLSearchParams(location.search).has('forceBlankTarget');
+		if (forceBlankTarget) {
+			fullscreen.target = '_blank';
+		}
 		// Override the fullscreen behavior.
 		fullscreen.addEventListener('click', function(event) {
-			window.top.location = unembed(location.href);
+			if (forceBlankTarget) {
+				window.open(fullscreen.href, '_blank');
+			} else {
+				window.top.location = fullscreen.href;
+			}
 			event.stopPropagation();
 		});
 	} else {
