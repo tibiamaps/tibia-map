@@ -7,7 +7,7 @@ This is an online Tibia map viewer (in [slippy map](https://wiki.openstreetmap.o
 1. Clone this repository and `cd` to its root directory.
 1. Install and use the [expected](https://github.com/tibiamaps/tibia-map/blob/main/.nvmrc) Node.js version: `nvm use`
 1. Run `npm install` to install the dependencies.
-1. After making changes, run `gulp` to build a new version of the `src` files into the `dist` directory.
+1. Run `npm run build` to compile a new version of the `src` files into the `dist` directory.
 
 ## Credits
 
