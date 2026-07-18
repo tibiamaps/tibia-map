@@ -1,11 +1,5 @@
 canvas {
-	image-rendering: -webkit-optimize-contrast; /* Old Android, Safari, UC Browser */
-	image-rendering: -moz-crisp-edges; /* Firefox */
-	image-rendering: crisp-edges; /* Safari */
-	image-rendering: pixelated; /* Chrome & Opera */
-	/* Note: keep this declaration at the bottom until
-	   https://github.com/postcss/autoprefixer/issues/632 is fixed. */
-	-ms-interpolation-mode: nearest-neighbor; /* IE */
+	image-rendering: pixelated;
 }
 
 canvas,
@@ -29,7 +23,8 @@ canvas,
 	line-height: 1.1;
 }
 
-.leaflet-control-container, .leaflet-control-container a {
+.leaflet-control-container,
+.leaflet-control-container a {
 	color: #000 !important;
 }
 
@@ -40,4 +35,36 @@ canvas,
 
 .leaflet-marker-icon {
 	image-rendering: pixelated;
+}
+
+.leaflet-subarea-label {
+	background: transparent;
+	border: none;
+	text-align: center;
+}
+
+.leaflet-subarea-label span {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	white-space: nowrap;
+	color: #fff;
+	text-shadow:
+		-1px -1px 0 #000,
+		1px -1px 0 #000,
+		-1px 1px 0 #000,
+		1px 1px 0 #000;
+	font-weight: bold;
+	font-size: 11px;
+	font-family: sans-serif;
+	pointer-events: auto;
+}
+
+.leaflet-map-dimmed .leaflet-subarea-label span {
+	opacity: 0.35;
+}
+
+.leaflet-map-dimmed .leaflet-subarea-label.active span {
+	opacity: 1;
 }

@@ -10,16 +10,24 @@ L.Control.Coordinates = L.Control.extend({
 		labelFormatterLng: undefined,
 		enableUserInput: true,
 		useLatLngOrder: false,
-		centerUserCoordinates: false
+		centerUserCoordinates: false,
 	},
-	onAdd: function(map) {
+	onAdd: function (map) {
 		this._map = map;
 		const className = 'leaflet-control-coordinates';
-		const container = this._container = L.DomUtil.create('div', className);
+		const container = (this._container = L.DomUtil.create('div', className));
 		const options = this.options;
-		this._labelcontainer = L.DomUtil.create('div', 'uiElement label', container);
+		this._labelcontainer = L.DomUtil.create(
+			'div',
+			'uiElement label',
+			container,
+		);
 		this._label = L.DomUtil.create('span', 'labelFirst', this._labelcontainer);
-		this._inputcontainer = L.DomUtil.create('div', 'uiElement input uiHidden', container);
+		this._inputcontainer = L.DomUtil.create(
+			'div',
+			'uiElement input uiHidden',
+			container,
+		);
 		let xSpan;
 		let ySpan;
 		if (options.useLatLngOrder) {
@@ -46,15 +54,15 @@ L.Control.Coordinates = L.Control.extend({
 		}
 		return container;
 	},
-	_createInput: function(classname, container) {
+	_createInput: function (classname, container) {
 		const input = L.DomUtil.create('input', classname, container);
 		L.DomEvent.disableClickPropagation(input);
 		return input;
 	},
-	_clearMarker: function() {
+	_clearMarker: function () {
 		this._map.removeLayer(this._marker);
 	},
-	_handleKeypress: function(event) {
+	_handleKeypress: function (event) {
 		switch (event.key) {
 			case 'Escape':
 				this.collapse();
@@ -68,9 +76,15 @@ L.Control.Coordinates = L.Control.extend({
 				break;
 		}
 	},
-	_handleSubmit: function() {
-		const x = L.NumberFormatter.createValidNumber(this._inputX.value, this.options.decimalSeparator);
-		const y = L.NumberFormatter.createValidNumber(this._inputY.value, this.options.decimalSeparator);
+	_handleSubmit: function () {
+		const x = L.NumberFormatter.createValidNumber(
+			this._inputX.value,
+			this.options.decimalSeparator,
+		);
+		const y = L.NumberFormatter.createValidNumber(
+			this._inputY.value,
+			this.options.decimalSeparator,
+		);
 		if (x !== undefined && y !== undefined) {
 			const marker = this._marker;
 			if (!marker) {
@@ -85,7 +99,7 @@ L.Control.Coordinates = L.Control.extend({
 			}
 		}
 	},
-	expand: function() {
+	expand: function () {
 		this._showsCoordinates = false;
 		this._map.off('mousemove', this._update, this);
 		L.DomEvent.addListener(this._container, 'mousemove', L.DomEvent.stop);
@@ -93,7 +107,7 @@ L.Control.Coordinates = L.Control.extend({
 		L.DomUtil.addClass(this._labelcontainer, 'uiHidden');
 		L.DomUtil.removeClass(this._inputcontainer, 'uiHidden');
 	},
-	_createCoordinateLabel: function(ll) {
+	_createCoordinateLabel: function (ll) {
 		const opts = this.options;
 		let x;
 		let y;
@@ -101,14 +115,14 @@ L.Control.Coordinates = L.Control.extend({
 			x = opts.labelFormatterLng(ll.x);
 		} else {
 			x = L.Util.template(opts.labelTemplateLng, {
-				x: this._getNumber(ll.x, opts)
+				x: this._getNumber(ll.x, opts),
 			});
 		}
 		if (opts.labelFormatterLat) {
 			y = opts.labelFormatterLat(ll.y);
 		} else {
 			y = L.Util.template(opts.labelTemplateLat, {
-				y: this._getNumber(ll.y, opts)
+				y: this._getNumber(ll.y, opts),
 			});
 		}
 		if (opts.useLatLngOrder) {
@@ -116,10 +130,10 @@ L.Control.Coordinates = L.Control.extend({
 		}
 		return x + ' ' + y;
 	},
-	_getNumber: function(n, opts) {
+	_getNumber: function (n, opts) {
 		return L.NumberFormatter.round(n, opts.decimals, opts.decimalSeparator);
 	},
-	collapse: function() {
+	collapse: function () {
 		if (!this._showsCoordinates) {
 			this._map.on('mousemove', this._update, this);
 			this._showsCoordinates = true;
@@ -138,14 +152,18 @@ L.Control.Coordinates = L.Control.extend({
 				close.textContent = 'Remove';
 				close.href = '#';
 				const stop = L.DomEvent.stopPropagation;
-				L.DomEvent
-					.on(close, 'click', stop)
+				L.DomEvent.on(close, 'click', stop)
 					.on(close, 'mousedown', stop)
 					.on(close, 'dblclick', stop)
 					.on(close, 'click', L.DomEvent.preventDefault)
-					.on(close, 'click', function() {
-						this._map.removeLayer(m);
-					}, this);
+					.on(
+						close,
+						'click',
+						function () {
+							this._map.removeLayer(m);
+						},
+						this,
+					);
 				m.bindPopup(container);
 				m.addTo(this._map);
 				this._map.removeLayer(this._marker);
@@ -153,7 +171,7 @@ L.Control.Coordinates = L.Control.extend({
 			}
 		}
 	},
-	_switchUI: function(event) {
+	_switchUI: function (event) {
 		L.DomEvent.stop(event);
 		L.DomEvent.stopPropagation(event);
 		L.DomEvent.preventDefault(event);
@@ -163,37 +181,45 @@ L.Control.Coordinates = L.Control.extend({
 			this.collapse();
 		}
 	},
-	onRemove: function(map) {
+	onRemove: function (map) {
 		map.off('mousemove', this._update, this);
 	},
-	_update: function(event) {
+	_update: function (event) {
 		let pos = event.latlng;
 		const opts = this.options;
 		if (pos) {
 			pos = pos.wrap();
 			this._currentPos = pos;
-			this._inputY.value = L.NumberFormatter.round(pos.lat, opts.decimals, opts.decimalSeparator);
-			this._inputX.value = L.NumberFormatter.round(pos.lng, opts.decimals, opts.decimalSeparator);
+			this._inputY.value = L.NumberFormatter.round(
+				pos.lat,
+				opts.decimals,
+				opts.decimalSeparator,
+			);
+			this._inputX.value = L.NumberFormatter.round(
+				pos.lng,
+				opts.decimals,
+				opts.decimalSeparator,
+			);
 			this._label.innerHTML = this._createCoordinateLabel(
-				this._map.project(event.latlng, 0)
+				this._map.project(event.latlng, 0),
 			);
 		}
-	}
+	},
 });
-L.control.coordinates = function(options) {
+L.control.coordinates = function (options) {
 	return new L.Control.Coordinates(options);
 };
 L.Map.mergeOptions({
-	coordinateControl: false
+	coordinateControl: false,
 });
-L.Map.addInitHook(function() {
+L.Map.addInitHook(function () {
 	if (this.options.coordinateControl) {
 		this.coordinateControl = new L.Control.Coordinates();
 		this.addControl(this.coordinateControl);
 	}
 });
 L.NumberFormatter = {
-	round: function(num, dec, sep) {
+	round: function (num, dec, sep) {
 		let res = L.Util.formatNum(num, dec) + '';
 		const numbers = res.split('.');
 		if (numbers[1]) {
@@ -205,7 +231,7 @@ L.NumberFormatter = {
 		}
 		return res;
 	},
-	createValidNumber: function(num, sep) {
+	createValidNumber: function (num, sep) {
 		if (num && num.length > 0) {
 			const numbers = num.split(sep || '.');
 			try {
@@ -219,5 +245,5 @@ L.NumberFormatter = {
 			}
 		}
 		return undefined;
-	}
+	},
 };

@@ -7,11 +7,11 @@ L.Crosshairs = L.LayerGroup.extend({
 			weight: 2,
 			color: '#333',
 			clickable: false,
-			pointerEvents: 'none'
-		}
+			pointerEvents: 'none',
+		},
 	},
 	exiva: false,
-	initialize: function(options) {
+	initialize: function (options) {
 		L.LayerGroup.prototype.initialize.call(this);
 		L.Util.setOptions(this, options);
 		this.crosshair = {
@@ -20,8 +20,14 @@ L.Crosshairs = L.LayerGroup.extend({
 			longitude_line_south: L.polyline([], this.options.style),
 			latitude_line_east: L.polyline([], this.options.style),
 			latitude_line_west: L.polyline([], this.options.style),
-			exiva_rectangle_100: this.calculateExivaRectangle(100, this.options.style),
-			exiva_rectangle_250: this.calculateExivaRectangle(250, this.options.style),
+			exiva_rectangle_100: this.calculateExivaRectangle(
+				100,
+				this.options.style,
+			),
+			exiva_rectangle_250: this.calculateExivaRectangle(
+				250,
+				this.options.style,
+			),
 			exiva_line_northeast_1: L.polyline([], this.options.style),
 			exiva_line_northeast_2: L.polyline([], this.options.style),
 			exiva_line_southeast_1: L.polyline([], this.options.style),
@@ -36,25 +42,25 @@ L.Crosshairs = L.LayerGroup.extend({
 		}
 		this._hideExiva();
 	},
-	calculateExivaBounds: function(size, x, y) {
+	calculateExivaBounds: function (size, x, y) {
 		return L.latLngBounds(
 			this._map.unproject([x - size, y - size], 0),
-			this._map.unproject([x + size + 1, y + size + 1], 0)
+			this._map.unproject([x + size + 1, y + size + 1], 0),
 		);
 	},
-	calculateExivaRectangle: function(size, style) {
+	calculateExivaRectangle: function (size, style) {
 		return L.rectangle(
 			[
 				[-size, -size],
-				[size + 1, size + 1]
+				[size + 1, size + 1],
 			],
-			style
+			style,
 		);
 	},
-	onAdd: function(map) {
+	onAdd: function (map) {
 		this._map = map;
 		this._moveCrosshairs({
-			latlng: this._map.getCenter()
+			latlng: this._map.getCenter(),
 		});
 		this._map.on('click', this._moveCrosshairs.bind(this));
 		this._map.on('move', this._moveCrosshairs.bind(this));
@@ -62,18 +68,18 @@ L.Crosshairs = L.LayerGroup.extend({
 		this._map.on('mouseover', this._show.bind(this));
 		this.eachLayer(map.addLayer, map);
 	},
-	onRemove: function(map) {
+	onRemove: function (map) {
 		this._map.off('click', this._moveCrosshairs);
 		this._map.off('zoomend', this._moveCrosshairs);
 		this.eachLayer(this.removeLayer, this);
 	},
-	_show: function() {
-		this.eachLayer(function(l) {
+	_show: function () {
+		this.eachLayer(function (l) {
 			this._map.addLayer(l);
 		}, this);
 	},
-	_hide: function() {
-		this.eachLayer(function(l) {;
+	_hide: function () {
+		this.eachLayer(function (l) {
 			this._map.removeLayer(l);
 		}, this);
 	},
@@ -95,9 +101,9 @@ L.Crosshairs = L.LayerGroup.extend({
 			'longitude_line_south',
 			'latitude_line_east',
 			'latitude_line_west',
-		]
+		],
 	},
-	_showExiva: function() {
+	_showExiva: function () {
 		this.exiva = true;
 		for (const layerId of this._exivaLayers.show) {
 			this.addLayer(this.crosshair[layerId]);
@@ -106,7 +112,7 @@ L.Crosshairs = L.LayerGroup.extend({
 			this.removeLayer(this.crosshair[layerId]);
 		}
 	},
-	_hideExiva: function() {
+	_hideExiva: function () {
 		this.exiva = false;
 		for (const layerId of this._exivaLayers.hide) {
 			this.addLayer(this.crosshair[layerId]);
@@ -115,14 +121,14 @@ L.Crosshairs = L.LayerGroup.extend({
 			this.removeLayer(this.crosshair[layerId]);
 		}
 	},
-	_toggleExiva: function() {
+	_toggleExiva: function () {
 		if (this.exiva) {
 			this._hideExiva();
 		} else {
 			this._showExiva();
 		}
 	},
-	_moveCrosshairs: function(e) {
+	_moveCrosshairs: function (e) {
 		var bounds;
 		var bounds_exiva_100;
 		var bounds_exiva_250;
@@ -145,19 +151,19 @@ L.Crosshairs = L.LayerGroup.extend({
 		var point = this._map.project(latlng);
 		this.crosshair.longitude_line_north.setLatLngs([
 			this._map.unproject([point.x, point.y]),
-			this._map.unproject([point.x, this._map.getPixelBounds().min.y])
+			this._map.unproject([point.x, this._map.getPixelBounds().min.y]),
 		]);
 		this.crosshair.longitude_line_south.setLatLngs([
 			this._map.unproject([point.x, point.y]),
-			this._map.unproject([point.x, this._map.getPixelBounds().max.y])
+			this._map.unproject([point.x, this._map.getPixelBounds().max.y]),
 		]);
 		this.crosshair.latitude_line_east.setLatLngs([
 			this._map.unproject([point.x, point.y]),
-			this._map.unproject([this._map.getPixelBounds().min.x, point.y])
+			this._map.unproject([this._map.getPixelBounds().min.x, point.y]),
 		]);
 		this.crosshair.latitude_line_west.setLatLngs([
 			this._map.unproject([point.x, point.y]),
-			this._map.unproject([this._map.getPixelBounds().max.x, point.y])
+			this._map.unproject([this._map.getPixelBounds().max.x, point.y]),
 		]);
 		// This number should be large enough to cover the difference
 		// between xMin/xMax and yMin/yMax on all zoom levels.
@@ -171,38 +177,62 @@ L.Crosshairs = L.LayerGroup.extend({
 		var OTHER_DIAGONAL_SIZE = DIAGONAL_SIZE * 2.42;
 		this.crosshair.exiva_line_northeast_1.setLatLngs([
 			this._map.unproject([point.x, point.y]),
-			this._map.unproject([point.x + DIAGONAL_SIZE, point.y - OTHER_DIAGONAL_SIZE])
+			this._map.unproject([
+				point.x + DIAGONAL_SIZE,
+				point.y - OTHER_DIAGONAL_SIZE,
+			]),
 		]);
 		this.crosshair.exiva_line_northeast_2.setLatLngs([
 			this._map.unproject([point.x, point.y]),
-			this._map.unproject([point.x + OTHER_DIAGONAL_SIZE, point.y - DIAGONAL_SIZE])
+			this._map.unproject([
+				point.x + OTHER_DIAGONAL_SIZE,
+				point.y - DIAGONAL_SIZE,
+			]),
 		]);
 		this.crosshair.exiva_line_southeast_1.setLatLngs([
 			this._map.unproject([point.x, point.y]),
-			this._map.unproject([point.x + OTHER_DIAGONAL_SIZE, point.y + DIAGONAL_SIZE])
+			this._map.unproject([
+				point.x + OTHER_DIAGONAL_SIZE,
+				point.y + DIAGONAL_SIZE,
+			]),
 		]);
 		this.crosshair.exiva_line_southeast_2.setLatLngs([
 			this._map.unproject([point.x, point.y]),
-			this._map.unproject([point.x + DIAGONAL_SIZE, point.y + OTHER_DIAGONAL_SIZE])
+			this._map.unproject([
+				point.x + DIAGONAL_SIZE,
+				point.y + OTHER_DIAGONAL_SIZE,
+			]),
 		]);
 		this.crosshair.exiva_line_southwest_1.setLatLngs([
 			this._map.unproject([point.x, point.y]),
-			this._map.unproject([point.x - DIAGONAL_SIZE, point.y + OTHER_DIAGONAL_SIZE])
+			this._map.unproject([
+				point.x - DIAGONAL_SIZE,
+				point.y + OTHER_DIAGONAL_SIZE,
+			]),
 		]);
 		this.crosshair.exiva_line_southwest_2.setLatLngs([
 			this._map.unproject([point.x, point.y]),
-			this._map.unproject([point.x - OTHER_DIAGONAL_SIZE, point.y + DIAGONAL_SIZE])
+			this._map.unproject([
+				point.x - OTHER_DIAGONAL_SIZE,
+				point.y + DIAGONAL_SIZE,
+			]),
 		]);
 		this.crosshair.exiva_line_northwest_1.setLatLngs([
 			this._map.unproject([point.x, point.y]),
-			this._map.unproject([point.x - OTHER_DIAGONAL_SIZE, point.y - DIAGONAL_SIZE])
+			this._map.unproject([
+				point.x - OTHER_DIAGONAL_SIZE,
+				point.y - DIAGONAL_SIZE,
+			]),
 		]);
 		this.crosshair.exiva_line_northwest_2.setLatLngs([
 			this._map.unproject([point.x, point.y]),
-			this._map.unproject([point.x - DIAGONAL_SIZE, point.y - OTHER_DIAGONAL_SIZE])
+			this._map.unproject([
+				point.x - DIAGONAL_SIZE,
+				point.y - OTHER_DIAGONAL_SIZE,
+			]),
 		]);
-	}
+	},
 });
-L.crosshairs = function(options) {
+L.crosshairs = function (options) {
 	return new L.Crosshairs(options);
 };

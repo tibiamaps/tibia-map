@@ -8,6 +8,7 @@ import './_js/leaflet.crosshairs.js';
 import './_js/leaflet.levelbuttons.js';
 import './_js/leaflet.exivabutton.js';
 import './_js/leaflet.markersbutton.js';
+import './_js/leaflet.areasbutton.js';
 import 'leaflet-fullscreen';
 
 // Import map initialization.
