@@ -24,6 +24,7 @@
 		"test": "npm run build",
 		"build": "rollup -c",
 		"dev": "rollup -c -w",
-		"format": "prettier . --write"
+		"format": "prettier . --write",
+		"rsync": "rsync --verbose --archive --compress dist/_json/areas.json tibiamaps.io:httpdocs/_json/areas.json"
 	}
 }

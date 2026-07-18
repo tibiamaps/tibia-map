@@ -66,6 +66,8 @@ export default {
 				{
 					src: 'src/_json/areas.json',
 					dest: 'dist/_json',
+					transform: (contents) =>
+						JSON.stringify(JSON.parse(contents.toString())),
 				},
 				{
 					src: 'src/favicon.ico',
