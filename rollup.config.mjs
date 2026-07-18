@@ -16,7 +16,7 @@ export default {
 	output: {
 		file: 'dist/map.js',
 		format: 'iife',
-		sourcemap: !isWatch
+		sourcemap: !isWatch,
 	},
 	plugins: [
 		// Clean the dist directory before build.
@@ -30,10 +30,7 @@ export default {
 		postcss({
 			extract: 'map.css',
 			minimize: true,
-			plugins: [
-				autoprefixer(),
-				cssnano()
-			]
+			plugins: [autoprefixer(), cssnano()],
 		}),
 
 		// Minify the output JS bundle.
@@ -43,46 +40,49 @@ export default {
 		copy({
 			targets: [
 				{
-					src: [
-						'src/index.html',
-						'src/small.html',
-						'src/embed.html'
-					],
+					src: ['src/index.html', 'src/small.html', 'src/embed.html'],
 					dest: 'dist',
-					transform: (contents) => contents.toString().replace(/\.\.\/dist\//g, '')
+					transform: (contents) =>
+						contents.toString().replace(/\.\.\/dist\//g, ''),
 				},
 				{
 					src: 'src/index.html',
 					dest: 'dist/embed',
-					transform: (contents) => contents.toString().replace(/\.\.\/dist\//g, '../')
+					transform: (contents) =>
+						contents.toString().replace(/\.\.\/dist\//g, '../'),
 				},
 				{
 					src: 'node_modules/leaflet-fullscreen/dist/*.png',
-					dest: 'dist'
+					dest: 'dist',
 				},
 				{
 					src: 'src/_css/*.png',
-					dest: 'dist'
+					dest: 'dist',
 				},
 				{
 					src: 'src/_img/marker-icons/*.png',
-					dest: 'dist/_img/marker-icons'
+					dest: 'dist/_img/marker-icons',
+				},
+				{
+					src: 'src/_json/areas.json',
+					dest: 'dist/_json',
 				},
 				{
 					src: 'src/favicon.ico',
-					dest: 'dist'
-				}
-			]
+					dest: 'dist',
+				},
+			],
 		}),
 
 		// Start dev server in watch mode.
-		isWatch && serve({
-			contentBase: 'dist',
-			port: 10001,
-			open: true
-		}),
+		isWatch &&
+			serve({
+				contentBase: 'dist',
+				port: 10015,
+				open: true,
+			}),
 
 		// Reload browser on changes in watch mode.
-		isWatch && livereload('dist')
-	].filter(Boolean)
+		isWatch && livereload('dist'),
+	].filter(Boolean),
 };
