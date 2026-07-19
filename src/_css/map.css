@@ -1,4 +1,5 @@
-canvas {
+canvas,
+.leaflet-tile {
 	image-rendering: pixelated;
 }
 
