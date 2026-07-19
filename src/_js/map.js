@@ -537,6 +537,7 @@
 			L.latLng(-yMax, xMax),
 		);
 		const map = (_this.map = L.map('map', {
+			preferCanvas: true,
 			attributionControl: false,
 			crs: L.CRS.CustomZoom,
 			fadeAnimation: false,
