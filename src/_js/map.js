@@ -35,6 +35,7 @@
 	let areasEnabled = false;
 	let isColorMap = true;
 	let pseudoFullscreenEnabled = false;
+	let typeButtonEnabled = false;
 
 	let crosshairX = 32368;
 	let crosshairY = 32198;
@@ -741,6 +742,9 @@
 		if (dataset.exivaEnabled !== undefined) {
 			exivaEnabled = dataset.exivaEnabled === 'true';
 		}
+		if (dataset.typeButtonEnabled !== undefined) {
+			typeButtonEnabled = dataset.typeButtonEnabled === 'true';
+		}
 
 		const initial = getUrlPosition();
 		centerX = initial.x;
@@ -948,6 +952,9 @@
 		typeBtn.textContent = 'P';
 		typeBtn.title = 'Toggle map type (P)';
 		typeBtn.addEventListener('click', toggleMapType);
+		if (!typeButtonEnabled) {
+			typeBtn.style.display = 'none';
+		}
 		toggleGroup.appendChild(typeBtn);
 
 		// Fullscreen group.
