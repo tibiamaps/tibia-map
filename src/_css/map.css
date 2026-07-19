@@ -1,7 +1,5 @@
 #map {
 	width: 100%;
-	min-height: 600px;
-	height: 100%;
 	background: #000;
 	position: relative;
 	overflow: hidden;
