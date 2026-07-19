@@ -51,10 +51,7 @@ export default {
 					transform: (contents) =>
 						contents.toString().replace(/\.\.\/dist\//g, '../'),
 				},
-				{
-					src: 'node_modules/leaflet-fullscreen/dist/*.png',
-					dest: 'dist',
-				},
+
 				{
 					src: 'src/_css/*.png',
 					dest: 'dist',
