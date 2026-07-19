@@ -51,7 +51,6 @@ export default {
 					transform: (contents) =>
 						contents.toString().replace(/\.\.\/dist\//g, '../'),
 				},
-
 				{
 					src: 'src/_css/*.png',
 					dest: 'dist',
