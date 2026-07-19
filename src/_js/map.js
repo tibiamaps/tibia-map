@@ -140,8 +140,7 @@
 			L.DomUtil.setTransform(level.el, translate, scale);
 		};
 		mapLayer.createTile = function (coords, done) {
-			const tile = document.createElement('canvas');
-			const ctx = tile.getContext('2d');
+			const tile = document.createElement('img');
 			tile.width = tile.height = 256;
 
 			const latlng = this._map.project({ lng: coords.x, lat: coords.y }, 0);
@@ -153,17 +152,19 @@
 			// Only fetch the map file if it’s in the whitelist, or if the whitelist
 			// has not finished loading yet.
 			if (KNOWN_TILES && !KNOWN_TILES.has(tileId)) {
-				ctx.fillStyle = '#000';
-				ctx.fillRect(0, 0, 256, 256);
+				tile.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+				setTimeout(function () {
+					done(null, tile);
+				}, 0);
 				return tile;
 			}
-			ctx.imageSmoothingEnabled = false;
-			const image = new Image();
-			image.onload = function () {
-				ctx.drawImage(image, 0, 0, 256, 256);
+			tile.onload = function () {
 				done(null, tile);
 			};
-			image.src =
+			tile.onerror = function () {
+				done(null, tile);
+			};
+			tile.src =
 				URL_PREFIX +
 				'mapper/Minimap_' +
 				(_this.isColorMap ? 'Color' : 'WaypointCost') +
