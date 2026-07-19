@@ -1,8 +1,7 @@
 {
 	"private": true,
 	"dependencies": {
-		"leaflet": "^1.9.4",
-		"leaflet-fullscreen": "^1.0.2"
+		"ol": "^10.9.0"
 	},
 	"devDependencies": {
 		"@alrra/travis-scripts": "^3.0.1",
