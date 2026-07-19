@@ -1,39 +1,67 @@
 (function () {
 	const IS_TIBIAMAPS_IO = location.origin === 'https://tibiamaps.io';
-	function TibiaMap() {
-		this.map = null;
-		this.crosshairs = null;
-		this.floor = 7;
-		this.mapFloors = [];
-		this.markersLayers = [];
-		this.markersLayerVisible = false;
-		this.areasLayers = [];
-		this.areasLayerVisible = false;
-		this.options = {};
-		this.isColorMap = true;
-		this.dimmingLayer = null;
-		this.activeSubarea = null;
-		this.activeLabelMarker = null;
-	}
+	const IS_LOCALHOST = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
 	const URL_PREFIX = 'https://tibiamaps.github.io/tibia-map-data/';
-	// `KNOWN_TILES` is a placeholder for the whitelist of known tiles:
-	// https://tibiamaps.github.io/tibia-map-data/mapper/tiles.json
+	const IMAGE_URL_PREFIX = IS_TIBIAMAPS_IO
+		? '/_img/marker-icons/'
+		: '_img/marker-icons/';
+
+	const ZOOM_SCALES = [1, 2, 7, 20, 40];
+	// Keep in sync with https://tibiamaps.github.io/tibia-map-data/bounds.json,
+	// adding `256` for `xMax` and `yMax`.
+	const MAP_BOUNDS = { xMin: 31744, xMax: 34304, yMin: 30976, yMax: 33024 };
+
 	let KNOWN_TILES = null;
-	const fetchKnownTiles = function () {
-		const xhr = new XMLHttpRequest();
-		xhr.open('GET', URL_PREFIX + 'mapper/tiles.json', true);
-		xhr.responseType = 'json';
-		xhr.onload = function () {
-			if (xhr.status === 200) {
-				KNOWN_TILES = new Set(xhr.response);
+	const fetchKnownTiles = async function () {
+		try {
+			const res = await fetch(URL_PREFIX + 'mapper/tiles.json');
+			if (res.ok) {
+				const data = await res.json();
+				KNOWN_TILES = new Set(data);
+				draw();
 			}
-		};
-		xhr.send();
+		} catch (error) {}
 	};
 	fetchKnownTiles();
-	const isEmbed =
-		location.pathname.indexOf('/embed') !== -1 ||
-		location.pathname.indexOf('/poi') !== -1;
+
+	// State variables (all Y values are positive).
+	let centerX = 32368;
+	let centerY = 32198;
+	let currentFloor = 7;
+	let zoomLevel = 0;
+	let exivaEnabled = false;
+	let markersEnabled = true;
+	let areasEnabled = true;
+	let isColorMap = true;
+	let pseudoFullscreenEnabled = false;
+
+	let crosshairX = 32368;
+	let crosshairY = 32198;
+
+	let allAreasData = [];
+	let markersData = [];
+	let hoveredSubareaId = null;
+	let hoveredMarker = null;
+
+	// Animation target variables.
+	let panTargetX = null;
+	let panTargetY = null;
+	let zoomTargetScale = ZOOM_SCALES[zoomLevel];
+	let zoomCurrentScale = ZOOM_SCALES[zoomLevel];
+	let zoomPivotGameX = null;
+	let zoomPivotGameY = null;
+	let zoomPivotScreenX = null;
+	let zoomPivotScreenY = null;
+
+	// Canvas and cache.
+	let canvas, ctx;
+	const tileCache = new Map();
+	const markerIconCache = new Map();
+
+	// Coordinates overlays elements.
+	let coordsLabelX, coordsLabelY, coordsLabelZ;
+	let floorLabel, exivaBtn, markersBtn, areasBtn, typeBtn, fullscreenBtn;
+
 	const setUrlPosition = function (coords, forceHash) {
 		const url =
 			'#' + coords.x + ',' + coords.y + ',' + coords.floor + ':' + coords.zoom;
@@ -41,7 +69,7 @@
 			window.history.pushState(null, null, url);
 		}
 	};
-	TibiaMap.prototype.setUrlPosition = setUrlPosition;
+
 	const getUrlPosition = function () {
 		const position = {
 			x: 32368,
@@ -80,666 +108,966 @@
 		}
 		return position;
 	};
-	TibiaMap.prototype.getUrlPosition = getUrlPosition;
-	const modifyLeaflet = function () {
-		L.CRS.CustomZoom = L.extend({}, L.CRS.Simple, {
-			scale: function (zoom) {
-				switch (zoom) {
-					case 0:
-						return 256;
-					case 1:
-						return 512;
-					case 2:
-						return 1792;
-					case 3:
-						return 5120;
-					case 4:
-						return 10240;
-					default:
-						return 256;
-				}
-			},
-			latLngToPoint: function (latlng, zoom) {
-				const projectedPoint = this.projection.project(latlng);
-				const scale = this.scale(zoom);
-				return this.transformation._transform(projectedPoint, scale);
-			},
-			pointToLatLng: function (point, zoom) {
-				const scale = this.scale(zoom);
-				const untransformedPoint = this.transformation.untransform(
-					point,
-					scale,
-				);
-				return this.projection.unproject(untransformedPoint);
-			},
-		});
-	};
-	TibiaMap.prototype._createMapFloorLayer = function (floor) {
-		const _this = this;
-		const mapLayer = (_this.mapFloors[floor] = new L.GridLayer({
-			floor: floor,
-		}));
-		mapLayer.getTileSize = function () {
-			const tileSize = L.GridLayer.prototype.getTileSize.call(this);
-			const zoom = this._tileZoom;
-			// Increase tile size when scaling above `maxNativeZoom`.
-			if (zoom > 0) {
-				return tileSize.divideBy(this._map.getZoomScale(0, zoom)).round();
-			}
-			return tileSize;
-		};
-		mapLayer._setZoomTransform = function (level, center, zoom) {
-			const coords = getUrlPosition();
-			coords.zoom = zoom;
-			setUrlPosition(coords, true);
-			const scale = this._map.getZoomScale(zoom, level.zoom);
-			const translate = level.origin
-				.multiplyBy(scale)
-				.subtract(this._map._getNewPixelOrigin(center, zoom))
-				.round();
-			L.DomUtil.setTransform(level.el, translate, scale);
-		};
-		mapLayer.createTile = function (coords, done) {
-			const tile = document.createElement('img');
-			tile.width = tile.height = 256;
 
-			const latlng = this._map.project({ lng: coords.x, lat: coords.y }, 0);
-			Object.keys(latlng).map(function (key) {
-				latlng[key] = Math.abs(latlng[key]);
+	const clamp = (val, min, max) => Math.max(min, Math.min(max, val));
+
+	const clampCenter = function (x, y, scale) {
+		if (!canvas) return { x: x, y: y };
+		const halfW = canvas.width / 2 / scale;
+		const halfH = canvas.height / 2 / scale;
+		const limitX = 256;
+		const limitY = 256;
+
+		let xMin = MAP_BOUNDS.xMin - limitX + halfW;
+		let xMax = MAP_BOUNDS.xMax + limitX - halfW;
+		let yMin = MAP_BOUNDS.yMin - limitY + halfH;
+		let yMax = MAP_BOUNDS.yMax + limitY - halfH;
+
+		if (xMin > xMax) {
+			const midX = (MAP_BOUNDS.xMin + MAP_BOUNDS.xMax) / 2;
+			xMin = midX;
+			xMax = midX;
+		}
+		if (yMin > yMax) {
+			const midY = (MAP_BOUNDS.yMin + MAP_BOUNDS.yMax) / 2;
+			yMin = midY;
+			yMax = midY;
+		}
+
+		return {
+			x: clamp(x, xMin, xMax),
+			y: clamp(y, yMin, yMax),
+		};
+	};
+
+	const isEmbed =
+		location.pathname.indexOf('/embed') !== -1 ||
+		location.pathname.indexOf('/poi') !== -1;
+
+	// Load subareas.
+	async function loadAreas() {
+		const urlParams = new URLSearchParams(window.location.search);
+		const container = document.getElementById('map');
+		const dataset = container ? container.dataset : {};
+
+		let url = '_json/areas.json';
+		if (IS_LOCALHOST) {
+			url += '?t=' + Date.now();
+		}
+
+		if (urlParams.get('areasUrl')) {
+			url = urlParams.get('areasUrl');
+		} else if (dataset.areasUrl) {
+			url = dataset.areasUrl;
+		}
+
+		try {
+			const res = await fetch(url);
+			if (res.ok) {
+				allAreasData = await res.json();
+				draw();
+				buildAreaLabels();
+			}
+		} catch (error) {}
+	}
+
+	// Load markers.
+	async function loadMarkers() {
+		// Possible markers sources.
+		// A) https://example.com?markers=<base64-json-str>#32368,32198,7:0
+		// B) https://example.com?markersUrl=https://example.com/pack.json#32368,32198,7:0
+		// C) <div id="map" data-markers="<json-str>" …>
+		// D) <div id="map" data-markers-url="https://example.com/pack.json" …>
+		// E) Fallback: https://tibiamaps.github.io/tibia-map-data/markers.json.
+		const urlParams = new URLSearchParams(window.location.search);
+
+		// 1. Check custom markers inline data in URL params.
+		try {
+			if (urlParams.get('markers')) {
+				markersData = JSON.parse(atob(urlParams.get('markers')));
+				draw();
+				return;
+			}
+		} catch (error) {
+			console.error('Invalid URL markers parameter.');
+		}
+
+		// 2. Check inline data from container dataset.
+		const container = document.getElementById('map');
+		const dataset = container ? container.dataset : {};
+		try {
+			if (dataset.markers) {
+				markersData = JSON.parse(dataset.markers);
+				draw();
+				return;
+			}
+		} catch (error) {
+			console.error('Invalid inline data-markers attribute.');
+		}
+
+		// 3. Determine URL to fetch.
+		let url = URL_PREFIX + 'markers.json';
+		if (urlParams.get('markersUrl')) {
+			url = urlParams.get('markersUrl');
+		} else if (dataset.markersUrl) {
+			url = dataset.markersUrl;
+		}
+
+		try {
+			const res = await fetch(url);
+			if (res.ok) {
+				markersData = await res.json();
+				draw();
+			}
+		} catch (error) {}
+	}
+
+	// Render area labels as HTML overlays positioned over the canvas.
+	const labelsContainer = document.createElement('div');
+	labelsContainer.className = 'map-labels-container';
+
+	function buildAreaLabels() {
+		labelsContainer.innerHTML = '';
+		if (!areasEnabled || currentFloor !== 7) return;
+
+		allAreasData.forEach((subarea) => {
+			const labelEl = document.createElement('div');
+			labelEl.className = 'map-subarea-label';
+			labelEl.innerHTML = '<span>' + subarea.subarea + '</span>';
+			labelsContainer.appendChild(labelEl);
+
+			subarea.el = labelEl;
+
+			labelEl.addEventListener('mouseenter', () => {
+				document.getElementById('map').classList.add('map-dimmed');
+				labelEl.classList.add('active');
+				hoveredSubareaId = subarea.id;
+				draw();
 			});
 
-			const tileId = latlng.x + '_' + latlng.y + '_' + this.options.floor;
-			// Only fetch the map file if it’s in the whitelist, or if the whitelist
-			// has not finished loading yet.
-			if (KNOWN_TILES && !KNOWN_TILES.has(tileId)) {
-				tile.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
-				// Defer the callback to the next tick to ensure Leaflet has cached the tile before it is marked as ready.
-				setTimeout(function () {
-					done(null, tile);
-				}, 0);
-				return tile;
-			}
-			tile.onload = function () {
-				done(null, tile);
-			};
-			tile.onerror = function () {
-				done(null, tile);
-			};
-			tile.src =
-				URL_PREFIX +
-				'mapper/Minimap_' +
-				(_this.isColorMap ? 'Color' : 'WaypointCost') +
-				'_' +
-				tileId +
-				'.png';
-			return tile;
-		};
-		return mapLayer;
-	};
-	TibiaMap.prototype._showHoverTile = function () {
-		const map = this.map;
-		const _this = this;
-		map.on('mouseout', function (event) {
-			_this.hoverTile.setBounds([
-				[0, 0],
-				[0, 0],
-			]);
-		});
-		map.on('mousemove', function (event) {
-			const pos = map.project(event.latlng, 0);
-			const x = Math.floor(pos.x);
-			const y = Math.floor(pos.y);
-			const bounds = [
-				map.unproject([x, y], 0),
-				map.unproject([x + 1, y + 1], 0),
-			];
-			if (!_this.hoverTile) {
-				_this.hoverTile = L.rectangle(bounds, {
-					color: '#009eff',
-					weight: 1,
-					clickable: false,
-					pointerEvents: 'none',
-				}).addTo(map);
-			} else {
-				_this.hoverTile.setBounds(bounds);
-			}
-		});
-	};
-	TibiaMap.prototype._loadMarkers = function () {
-		const _this = this;
-		const icons = [];
-		// https://tibiamaps.io/guides/map-file-format#map-marker-data
-		const symbols = [
-			'!',
-			'$',
-			'?',
-			'bag',
-			'checkmark',
-			'cross',
-			'crossmark',
-			'down',
-			'flag',
-			'lock',
-			'mouth',
-			'red down',
-			'red left',
-			'red right',
-			'red up',
-			'skull',
-			'spear',
-			'star',
-			'sword',
-			'up',
-		];
-		const IMAGE_URL_PREFIX = IS_TIBIAMAPS_IO
-			? '/_img/marker-icons/'
-			: '_img/marker-icons/';
-		symbols.forEach((s) => {
-			icons[s] = L.icon({
-				iconSize: [11, 11],
-				className: 'leaflet-marker-icon',
-				iconUrl:
-					IMAGE_URL_PREFIX +
-					s
-						.replace('!', 'exclamation')
-						.replace('$', 'dollar')
-						.replace('?', 'question')
-						.replace(' ', '-') +
-					'.png',
+			labelEl.addEventListener('mouseleave', () => {
+				document.getElementById('map').classList.remove('map-dimmed');
+				labelEl.classList.remove('active');
+				hoveredSubareaId = null;
+				draw();
 			});
 		});
+		updateAreaLabelsPosition();
+	}
 
-		function getMarkersSource() {
-			const urlParams = new URLSearchParams(window.location.search);
-			// Possible markers sources
-			// A) https://example.com?markers=<base64-json-str>#32368,32198,7:0
-			// B) https://example.com?markersUrl=https://example.com/pack.json#32368,32198,7:0
-			// C) <div id="map" data-markers="<json-str>" …>
-			// D) <div id="map" data-markers-url="https://example.com/pack.json" …>
-			// E) fallback: https://tibiamaps.github.io/tibia-map-data/markers.json
-			try {
-				if (urlParams.get('markers'))
-					return JSON.parse(atob(urlParams.get('markers')));
-				if (urlParams.get('markersUrl')) return urlParams.get('markersUrl');
-				if (_this.options.markers) return JSON.parse(_this.options.markers);
-				if (_this.options.markersUrl) return _this.options.markersUrl;
-			} catch (error) {
-				console.error(
-					'Invalid custom markers data. Falling back to default markers',
-				);
-			}
-			return URL_PREFIX + 'markers.json';
+	function updateAreaLabelsPosition() {
+		if (!areasEnabled || currentFloor !== 7) {
+			labelsContainer.style.display = 'none';
+			return;
 		}
+		labelsContainer.style.display = 'block';
 
-		const markersSource = getMarkersSource();
-		if (typeof markersSource === 'string') {
-			loadMarkersFromUrl(markersSource);
-		} else {
-			buildMarkerLayers(markersSource);
-		}
+		const scale = zoomCurrentScale;
+		const rect = canvas.getBoundingClientRect();
+		const halfW = rect.width / 2;
+		const halfH = rect.height / 2;
 
-		function loadMarkersFromUrl(url) {
-			const xhr = new XMLHttpRequest();
-			xhr.open('GET', url);
-			xhr.responseType = 'json';
-			xhr.onload = function () {
-				if (xhr.status === 200) {
-					buildMarkerLayers(xhr.response);
-				}
-			};
-			xhr.send();
-		}
+		allAreasData.forEach((subarea) => {
+			if (!subarea.el) return;
+			const sx = (subarea.center[0] - centerX) * scale + halfW;
+			const sy = (subarea.center[1] - centerY) * scale + halfH;
 
-		function buildMarkerLayers(markersData) {
-			markersData.forEach((m) => {
-				const options = { title: m.description };
-				if (m.icon && m.icon in icons) {
-					options.icon = icons[m.icon];
-				}
-				if (!_this.markersLayers[m.z]) {
-					_this.markersLayers[m.z] = new L.layerGroup();
-				}
-				_this.markersLayers[m.z].addLayer(
-					L.marker(_this.map.unproject([m.x + 0.5, m.y + 0.5], 0), options),
-				);
-			});
-			_this._tryShowMarkers();
-		}
-	};
-	TibiaMap.prototype._toggleMarkers = function () {
-		this.markersLayerVisible = !this.markersLayerVisible;
-		if (this.markersLayers.length === 0) {
-			this._loadMarkers(); // Lazy load in case markers were originally disabled
-		} else {
-			this._tryShowMarkers();
-		}
-	};
-	TibiaMap.prototype._toggleMapType = function () {
-		this.isColorMap = !this.isColorMap;
-		// TODO: Find a cleaner way to re-render the map.
-		const map = this.map;
-		map._resetView(map.getCenter(), map.getZoom(), true);
-	};
-	TibiaMap.prototype._tryShowMarkers = function () {
-		const _this = this;
-		this.markersLayers.forEach((layer, floor) => {
-			if (floor === _this.floor && _this.markersLayerVisible) {
-				_this.map.addLayer(layer);
+			// Check if inside canvas boundaries.
+			if (sx >= 0 && sx <= rect.width && sy >= 0 && sy <= rect.height) {
+				subarea.el.style.display = 'block';
+				subarea.el.style.left = sx + 'px';
+				subarea.el.style.top = sy + 'px';
 			} else {
-				_this.map.removeLayer(layer);
-			}
-		});
-	};
-	TibiaMap.prototype._tryShowAreas = function () {
-		const _this = this;
-		if (this.map && this.dimmingLayer) {
-			this.map.removeLayer(this.dimmingLayer);
-			this.dimmingLayer = null;
-		}
-		if (this.activeLabelMarker) {
-			const el = this.activeLabelMarker.getElement();
-			if (el) {
-				el.classList.remove('active');
-			}
-			this.activeLabelMarker = null;
-		}
-		if (this.activeSubarea) {
-			this.activeSubarea.setStyle({ weight: 1.5 });
-		}
-		this.activeSubarea = null;
-		if (this.map) {
-			this.map.getContainer().classList.remove('leaflet-map-dimmed');
-		}
-		this.areasLayers.forEach((layer, floor) => {
-			if (floor === _this.floor && _this.areasLayerVisible) {
-				_this.map.addLayer(layer);
-			} else {
-				_this.map.removeLayer(layer);
-			}
-		});
-	};
-	TibiaMap.prototype._toggleAreas = function () {
-		this.areasLayerVisible = !this.areasLayerVisible;
-		if (this.areasLayers.length === 0) {
-			this._loadAreas();
-		} else {
-			this._tryShowAreas();
-		}
-	};
-	TibiaMap.prototype._loadAreas = function () {
-		const _this = this;
-		const getScriptBaseUrl = function () {
-			if (document.currentScript) {
-				const src = document.currentScript.src;
-				return src.substring(0, src.lastIndexOf('/') + 1);
-			}
-			return '';
-		};
-		const getAreasSource = function () {
-			const urlParams = new URLSearchParams(window.location.search);
-			try {
-				if (urlParams.get('areasUrl')) return urlParams.get('areasUrl');
-				if (_this.options.areasUrl) return _this.options.areasUrl;
-			} catch (error) {
-				console.error('Invalid custom areas url');
-			}
-			let url = getScriptBaseUrl() + '_json/areas.json';
-			const isLocal =
-				location.hostname === 'localhost' ||
-				location.hostname === '127.0.0.1' ||
-				location.protocol === 'file:';
-			if (isLocal) {
-				url += '?t=' + Date.now();
-			}
-			return url;
-		};
-		const xhr = new XMLHttpRequest();
-		xhr.open('GET', getAreasSource());
-		xhr.responseType = 'json';
-		xhr.onload = function () {
-			if (xhr.status === 200) {
-				buildAreaLayers(xhr.response);
-			}
-		};
-		xhr.send();
-
-		function buildAreaLayers(areasData) {
-			areasData.forEach((area) => {
-				area.subareas.forEach((subarea) => {
-					const z = 7; // Default to Ground floor (7) as coordinate.z was removed.
-					if (!_this.areasLayers[z]) {
-						_this.areasLayers[z] = new L.layerGroup();
-					}
-					const polygonLatLngs = subarea.boundaries.map((loop) => {
-						return loop.map((pt) => _this.map.unproject([pt[0], pt[1]], 0));
-					});
-					const polygon = L.polygon(polygonLatLngs, {
-						color: '#ffcc00',
-						weight: 1.5,
-						fill: false,
-						interactive: false,
-					});
-					_this.areasLayers[z].addLayer(polygon);
-					const centerLatLng = _this.map.unproject(
-						[subarea.center[0], subarea.center[1]],
-						0,
-					);
-					const labelIcon = L.divIcon({
-						className: 'leaflet-subarea-label',
-						html: '<span>' + subarea.subareaName + '</span>',
-						iconSize: null,
-					});
-					const labelMarker = L.marker(centerLatLng, {
-						icon: labelIcon,
-						interactive: true,
-					});
-					_this.areasLayers[z].addLayer(labelMarker);
-
-					labelMarker.on('mouseover', () => {
-						if (_this.dimmingLayer) {
-							_this.map.removeLayer(_this.dimmingLayer);
-						}
-						if (_this.activeLabelMarker) {
-							const prevEl = _this.activeLabelMarker.getElement();
-							if (prevEl) {
-								prevEl.classList.remove('active');
-							}
-						}
-						if (_this.activeSubarea) {
-							_this.activeSubarea.setStyle({ weight: 1.5 });
-						}
-
-						const maxBounds = _this.map.options.maxBounds;
-						const north = maxBounds.getNorth();
-						const south = maxBounds.getSouth();
-						const west = maxBounds.getWest();
-						const east = maxBounds.getEast();
-						const outerBoundary = [
-							L.latLng(north + 10, west - 10),
-							L.latLng(north + 10, east + 10),
-							L.latLng(south - 10, east + 10),
-							L.latLng(south - 10, west - 10),
-						];
-
-						const outerRings = polygonLatLngs.filter((loop) => {
-							let area = 0;
-							for (let i = 0; i < loop.length; i++) {
-								const p1 = loop[i];
-								const p2 = loop[(i + 1) % loop.length];
-								area += p1.lat * p2.lng - p2.lat * p1.lng;
-							}
-							// Only consider loops with negative area as outer boundaries.
-							return area < 0;
-						});
-
-						_this.dimmingLayer = L.polygon([outerBoundary, ...outerRings], {
-							color: '#000',
-							weight: 0,
-							fillColor: '#000',
-							fillOpacity: 0.5,
-							interactive: false,
-						}).addTo(_this.map);
-
-						_this.activeSubarea = polygon;
-						_this.activeLabelMarker = labelMarker;
-
-						polygon.setStyle({ weight: 3 });
-
-						const el = labelMarker.getElement();
-						if (el) {
-							el.classList.add('active');
-						}
-
-						_this.map.getContainer().classList.add('leaflet-map-dimmed');
-					});
-
-					labelMarker.on('mouseout', () => {
-						if (_this.activeLabelMarker === labelMarker) {
-							if (_this.dimmingLayer) {
-								_this.map.removeLayer(_this.dimmingLayer);
-								_this.dimmingLayer = null;
-							}
-							if (_this.activeSubarea) {
-								_this.activeSubarea.setStyle({ weight: 1.5 });
-							}
-							_this.activeSubarea = null;
-							const el = labelMarker.getElement();
-							if (el) {
-								el.classList.remove('active');
-							}
-							_this.activeLabelMarker = null;
-							_this.map.getContainer().classList.remove('leaflet-map-dimmed');
-						}
-					});
-
-					labelMarker.on('click', (event) => {
-						_this.map.fire('click', event);
-					});
-				});
-			});
-			_this._tryShowAreas();
-		}
-	};
-
-	TibiaMap.prototype.init = function (options) {
-		const _this = this;
-		_this.options = options;
-		modifyLeaflet();
-		// Taken from https://tibiamaps.github.io/tibia-map-data/bounds.json, which
-		// rarely (if ever) changes.
-		const bounds = { xMin: 124, xMax: 133, yMin: 121, yMax: 128 };
-		const xPadding = window.innerWidth / 256 / 2;
-		const yPadding = window.innerHeight / 256 / 2;
-		const yMin = bounds.yMin - yPadding;
-		const xMin = bounds.xMin - xPadding;
-		const yMax = bounds.yMax + 1 + yPadding;
-		const xMax = bounds.xMax + 1 + xPadding;
-		const maxBounds = L.latLngBounds(
-			L.latLng(-yMin, xMin),
-			L.latLng(-yMax, xMax),
-		);
-		const map = (_this.map = L.map('map', {
-			attributionControl: false,
-			crs: L.CRS.CustomZoom,
-			fadeAnimation: false,
-			keyboardPanOffset: 400,
-			maxBounds: maxBounds,
-			maxNativeZoom: 0,
-			maxZoom: 4,
-			minZoom: 0,
-			scrollWheelZoom: !isEmbed,
-			unloadInvisibleTiles: false,
-			updateWhenIdle: true,
-			zoomAnimationThreshold: 4,
-			touchZoom: false,
-		}));
-		L.control
-			.fullscreen({
-				title: {
-					false: isEmbed
-						? 'Explore this area in the map viewer'
-						: 'View fullscreen',
-					true: 'Exit fullscreen',
-				},
-				pseudoFullscreen: true,
-			})
-			.addTo(map);
-		const baseMaps = {
-			'Floor +7': _this._createMapFloorLayer(0),
-			'Floor +6': _this._createMapFloorLayer(1),
-			'Floor +5': _this._createMapFloorLayer(2),
-			'Floor +4': _this._createMapFloorLayer(3),
-			'Floor +3': _this._createMapFloorLayer(4),
-			'Floor +2': _this._createMapFloorLayer(5),
-			'Floor +1': _this._createMapFloorLayer(6),
-			'Ground floor': _this._createMapFloorLayer(7),
-			'Floor -1': _this._createMapFloorLayer(8),
-			'Floor -2': _this._createMapFloorLayer(9),
-			'Floor -3': _this._createMapFloorLayer(10),
-			'Floor -4': _this._createMapFloorLayer(11),
-			'Floor -5': _this._createMapFloorLayer(12),
-			'Floor -6': _this._createMapFloorLayer(13),
-			'Floor -7': _this._createMapFloorLayer(14),
-			'Floor -8': _this._createMapFloorLayer(15),
-		};
-		const layers_widget = L.control.layers(baseMaps, {}).addTo(map);
-		const current = getUrlPosition();
-		_this.floor = current.floor;
-		map.setView(map.unproject([current.x, current.y], 0), current.zoom);
-		_this.mapFloors[current.floor].addTo(map);
-		window.addEventListener('popstate', function (event) {
-			const current = getUrlPosition();
-			if (current.floor !== _this.floor) {
-				_this.floor = current.floor;
-				_this.mapFloors[_this.floor].addTo(map);
-			}
-			if (current.zoom !== map.getZoom()) {
-				map.setZoom(current.zoom);
-			}
-			map.panTo(map.unproject([current.x, current.y], 0));
-		});
-		map.on('baselayerchange', function (layer) {
-			_this.floor = layer.layer.options.floor;
-			_this._tryShowMarkers();
-			_this._tryShowAreas();
-		});
-		map.on('click', function (event) {
-			const coords = L.CRS.CustomZoom.latLngToPoint(event.latlng, 0);
-			const zoom = map.getZoom();
-			const coordX = Math.floor(Math.abs(coords.x));
-			const coordY = Math.floor(Math.abs(coords.y));
-			const coordZ = _this.floor;
-			setUrlPosition(
-				{
-					x: coordX,
-					y: coordY,
-					floor: coordZ,
-					zoom: zoom,
-				},
-				true,
-			);
-			if (window.console) {
-				const xID = Math.floor(coordX / 256) * 256;
-				const yID = Math.floor(coordY / 256) * 256;
-				const id = xID + '_' + yID + '_' + coordZ;
-				console.log(id);
-			}
-		});
-		this.crosshairs = L.crosshairs().addTo(map);
-		L.control
-			.coordinates({
-				position: 'bottomleft',
-				enableUserInput: false,
-				labelFormatterLat: function (lat) {
-					return '<b>Y</b>: ' + Math.floor(lat) + ' <b>Z</b>: ' + _this.floor;
-				},
-				labelFormatterLng: function (lng) {
-					return '<b>X</b>: ' + Math.floor(lng);
-				},
-			})
-			.addTo(map);
-		L.LevelButtons.btns = L.levelButtons({
-			layers_widget: layers_widget,
-		}).addTo(map);
-		L.ExivaButton.btns = L.exivaButton({
-			crosshairs: this.crosshairs,
-		}).addTo(map);
-		_this._showHoverTile();
-
-		L.MarkersButton.btns = L.markersButton({
-			map: _this,
-		}).addTo(map);
-		if (_this.options.markersEnabled === 'true') {
-			_this.markersLayerVisible = true;
-			_this._loadMarkers();
-		}
-
-		L.AreasButton.btns = L.areasButton({
-			map: _this,
-		}).addTo(map);
-		if (_this.options.areasEnabled === 'true') {
-			_this.areasLayerVisible = true;
-			_this._loadAreas();
-		}
-	};
-
-	const mapContainer = document.querySelector('#map');
-	const map = new TibiaMap();
-	map.init(mapContainer.dataset);
-	L.LevelButtons.btns.setTibiaMap(map);
-
-	const fakeClick = function (target) {
-		const event = document.createEvent('MouseEvents');
-		event.initMouseEvent('click');
-		target.dispatchEvent(event);
-	};
-
-	const unembed = function (url) {
-		const updated = url.replace('/embed', '').replace('?forceBlankTarget', '');
-		return updated;
-	};
-
-	const fullscreen = document.querySelector(
-		'.leaflet-control-fullscreen-button',
-	);
-	// Make the fullscreen ‘button’ act as a permalink in embed views.
-	if (isEmbed) {
-		// Ensure right-click → copy URL works.
-		fullscreen.href = unembed(location.href);
-		const forceBlankTarget = new URLSearchParams(location.search).has(
-			'forceBlankTarget',
-		);
-		if (forceBlankTarget) {
-			fullscreen.target = '_blank';
-		}
-		// Override the fullscreen behavior.
-		fullscreen.addEventListener('click', function (event) {
-			if (forceBlankTarget) {
-				window.open(fullscreen.href, '_blank');
-			} else {
-				window.top.location = fullscreen.href;
-			}
-			event.stopPropagation();
-		});
-	} else {
-		// Add keyboard shortcuts.
-		// Since `fakeClick` seems to follow the `href` no matter what (at
-		// least in Chrome), change it to a no-op.
-		fullscreen.href = 'javascript:null';
-		document.documentElement.addEventListener('keydown', function (event) {
-			const _map = map.map;
-			if (
-				// Press `F` to toggle pseudo-fullscreen mode.
-				event.key === 'f' ||
-				// Press `Esc` to exit pseudo-fullscreen mode.
-				(event.key === 'Escape' && _map.isFullscreen())
-			) {
-				// The following doesn’t seem to work:
-				//_map.toggleFullscreen();
-				// …so let’s hack around it:
-				fakeClick(fullscreen);
-			}
-			// Press `C` to center the map on the selected coordinate.
-			if (event.key === 'c') {
-				const current = getUrlPosition();
-				_map.panTo(_map.unproject([current.x, current.y], 0));
-			}
-			// Press `E` to toggle the exiva overlay.
-			if (event.key === 'e') {
-				map.crosshairs._toggleExiva();
-			}
-			// Press `M` to toggle the markers overlay.
-			if (event.key === 'm') {
-				map._toggleMarkers();
-			}
-			// Press `A` to toggle the subarea outlines overlay.
-			if (event.key === 'a') {
-				map._toggleAreas();
-			}
-			// Press `P` to toggle the map type (color data vs. pathfinding data).
-			if (event.key === 'p') {
-				map._toggleMapType();
+				subarea.el.style.display = 'none';
 			}
 		});
 	}
+
+	// Main draw function.
+	function draw() {
+		if (!canvas) return;
+
+		const width = canvas.width;
+		const height = canvas.height;
+		const scale = zoomCurrentScale;
+
+		ctx.fillStyle = '#000000';
+		ctx.fillRect(0, 0, width, height);
+
+		// 1. Draw map tiles.
+		const minX = centerX - width / 2 / scale;
+		const maxX = centerX + width / 2 / scale;
+		const minY = centerY - height / 2 / scale;
+		const maxY = centerY + height / 2 / scale;
+
+		const startTileX = Math.floor(
+			clamp(minX, MAP_BOUNDS.xMin, MAP_BOUNDS.xMax) / 256,
+		);
+		const endTileX = Math.floor(
+			clamp(maxX, MAP_BOUNDS.xMin, MAP_BOUNDS.xMax) / 256,
+		);
+		const startTileY = Math.floor(
+			clamp(minY, MAP_BOUNDS.yMin, MAP_BOUNDS.yMax) / 256,
+		);
+		const endTileY = Math.floor(
+			clamp(maxY, MAP_BOUNDS.yMin, MAP_BOUNDS.yMax) / 256,
+		);
+
+		for (let tx = startTileX; tx <= endTileX; tx++) {
+			for (let ty = startTileY; ty <= endTileY; ty++) {
+				const tileId = tx * 256 + '_' + ty * 256 + '_' + currentFloor;
+				if (KNOWN_TILES && !KNOWN_TILES.has(tileId)) continue;
+
+				let img = tileCache.get(tileId);
+				if (!img) {
+					img = new Image();
+					img.onload = () => draw();
+					img.src =
+						URL_PREFIX +
+						'mapper/Minimap_' +
+						(isColorMap ? 'Color' : 'WaypointCost') +
+						'_' +
+						tileId +
+						'.png';
+					tileCache.set(tileId, img);
+				}
+
+				if (img.complete && img.naturalWidth !== 0) {
+					const dx = Math.round((tx * 256 - centerX) * scale + width / 2);
+					const dy = Math.round((ty * 256 - centerY) * scale + height / 2);
+					const dSize = Math.round(256 * scale);
+					ctx.drawImage(img, dx, dy, dSize, dSize);
+				}
+			}
+		}
+
+		// 2. Draw boundaries and dimming overlay.
+		if (areasEnabled && currentFloor === 7) {
+			let hoveredSubarea = null;
+
+			// Viewport bounds in game coordinates.
+			const viewMinX = centerX - width / 2 / scale;
+			const viewMaxX = centerX + width / 2 / scale;
+			const viewMinY = centerY - height / 2 / scale;
+			const viewMaxY = centerY + height / 2 / scale;
+
+			allAreasData.forEach((subarea) => {
+				if (subarea.id === hoveredSubareaId) {
+					hoveredSubarea = subarea;
+					return;
+				}
+
+				// Viewport culling using bounding box.
+				if (
+					subarea.bbox[2] < viewMinX ||
+					subarea.bbox[0] > viewMaxX ||
+					subarea.bbox[3] < viewMinY ||
+					subarea.bbox[1] > viewMaxY
+				) {
+					return;
+				}
+
+				// Draw normal yellow stroke outlines.
+				ctx.lineWidth = 1.5 * Math.sqrt(scale);
+				ctx.strokeStyle = '#ffcc00';
+				subarea.rings.forEach((ring) => {
+					ctx.beginPath();
+					ring.forEach((pt, idx) => {
+						const sx = (pt[0] - centerX) * scale + width / 2;
+						const sy = (pt[1] - centerY) * scale + height / 2;
+						if (idx === 0) ctx.moveTo(sx, sy);
+						else ctx.lineTo(sx, sy);
+					});
+					ctx.closePath();
+					ctx.stroke();
+				});
+			});
+
+			// If a subarea is hovered, draw the dimming overlay with cutouts.
+			if (hoveredSubarea) {
+				ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+				ctx.beginPath();
+				ctx.rect(0, 0, width, height);
+
+				hoveredSubarea.rings.forEach((ring) => {
+					ring.forEach((pt, idx) => {
+						const sx = (pt[0] - centerX) * scale + width / 2;
+						const sy = (pt[1] - centerY) * scale + height / 2;
+						if (idx === 0) ctx.moveTo(sx, sy);
+						else ctx.lineTo(sx, sy);
+					});
+				});
+				ctx.closePath();
+				ctx.fill('evenodd');
+
+				// Draw the hovered subarea's outlines thicker.
+				ctx.lineWidth = 3.0 * Math.sqrt(scale);
+				ctx.strokeStyle = '#ffcc00';
+				hoveredSubarea.rings.forEach((ring) => {
+					ctx.beginPath();
+					ring.forEach((pt, idx) => {
+						const sx = (pt[0] - centerX) * scale + width / 2;
+						const sy = (pt[1] - centerY) * scale + height / 2;
+						if (idx === 0) ctx.moveTo(sx, sy);
+						else ctx.lineTo(sx, sy);
+					});
+					ctx.closePath();
+					ctx.stroke();
+				});
+			}
+		}
+
+		// 3. Draw exiva crosshairs.
+		// 3a. Draw target 1x1 square (always visible).
+		const tx = Math.round((crosshairX - centerX) * scale + width / 2);
+		const ty = Math.round((crosshairY - centerY) * scale + height / 2);
+		const tSize = Math.round(Math.max(1, scale));
+		ctx.strokeRect(tx, ty, tSize, tSize);
+
+		// 3b. Center crosshair lines exactly on the target square.
+		const cx = Math.round(tx + tSize / 2);
+		const cy = Math.round(ty + tSize / 2);
+		ctx.strokeStyle = '#333333';
+		ctx.lineWidth = 2;
+		if (exivaEnabled) {
+			// 3b. Draw exiva 100 & 250 concentric squares.
+			const s100 = Math.round(100 * scale);
+			ctx.strokeRect(tx - s100, ty - s100, tSize + s100 * 2, tSize + s100 * 2);
+
+			const s250 = Math.round(250 * scale);
+			ctx.strokeRect(tx - s250, ty - s250, tSize + s250 * 2, tSize + s250 * 2);
+
+			// 3c. Draw 8 radar guideline angles.
+			const R = 3000;
+			const angles = [22.5, 67.5, 112.5, 157.5, 202.5, 247.5, 292.5, 337.5];
+			ctx.beginPath();
+			angles.forEach((deg) => {
+				const rad = (deg * Math.PI) / 180;
+				ctx.moveTo(cx, cy);
+				ctx.lineTo(cx + R * Math.cos(rad), cy + R * Math.sin(rad));
+			});
+			ctx.stroke();
+		} else {
+			// 3d. Draw horizontal and vertical crosshair lines.
+			ctx.beginPath();
+			ctx.moveTo(cx, 0);
+			ctx.lineTo(cx, height);
+			ctx.moveTo(0, cy);
+			ctx.lineTo(width, cy);
+			ctx.stroke();
+		}
+
+		// 4. Draw Markers.
+		if (markersEnabled) {
+			markersData.forEach((m) => {
+				if (m.z !== currentFloor) return;
+				const mx = Math.round((m.x + 0.5 - centerX) * scale + width / 2);
+				const my = Math.round((m.y + 0.5 - centerY) * scale + height / 2);
+
+				const iconName = m.icon
+					.replace('!', 'exclamation')
+					.replace('$', 'dollar')
+					.replace('?', 'question')
+					.replace(' ', '-');
+				const iconUrl = IMAGE_URL_PREFIX + iconName + '.png';
+
+				let iconImg = markerIconCache.get(iconUrl);
+				if (!iconImg) {
+					iconImg = new Image();
+					iconImg.onload = () => draw();
+					iconImg.src = iconUrl;
+					markerIconCache.set(iconUrl, iconImg);
+				}
+
+				if (iconImg.complete && iconImg.naturalWidth !== 0) {
+					ctx.drawImage(
+						iconImg,
+						Math.round(mx - 5.5),
+						Math.round(my - 5.5),
+						11,
+						11,
+					);
+				}
+			});
+		}
+
+		// Update UI overlays positions.
+		updateAreaLabelsPosition();
+	}
+
+	// Tooltip element for markers.
+	const tooltipEl = document.createElement('div');
+	tooltipEl.className = 'map-marker-tooltip';
+
+	function checkHover(event) {
+		if (!canvas) return;
+		const rect = canvas.getBoundingClientRect();
+		const mouseX = event.clientX - rect.left;
+		const mouseY = event.clientY - rect.top;
+		const scale = zoomCurrentScale;
+
+		// Convert screen mouse coordinates back to game coordinates.
+		const gameX = (mouseX - rect.width / 2) / scale + centerX;
+		const gameY = (mouseY - rect.height / 2) / scale + centerY;
+
+		// 1. Update coords display HUD.
+		coordsLabelX.textContent = 'X: ' + Math.floor(gameX);
+		coordsLabelY.textContent = 'Y: ' + Math.floor(gameY);
+
+		// 2. Check marker hover.
+		let foundMarker = null;
+		if (markersEnabled) {
+			for (let i = 0; i < markersData.length; i++) {
+				const m = markersData[i];
+				if (m.z !== currentFloor) continue;
+				const dist =
+					Math.sqrt(
+						Math.pow(m.x + 0.5 - gameX, 2) + Math.pow(m.y + 0.5 - gameY, 2),
+					) * scale;
+				if (dist <= 7.0) {
+					// Hover hit zone within 7px radius.
+					foundMarker = m;
+					break;
+				}
+			}
+		}
+
+		if (
+			foundMarker &&
+			foundMarker.description &&
+			foundMarker.description.trim()
+		) {
+			hoveredMarker = foundMarker;
+			tooltipEl.textContent = foundMarker.description;
+			tooltipEl.style.display = 'block';
+			tooltipEl.style.left = mouseX + 10 + 'px';
+			tooltipEl.style.top = mouseY + 10 + 'px';
+		} else {
+			hoveredMarker = null;
+			tooltipEl.style.display = 'none';
+		}
+	}
+
+	// Floor selection.
+	function setFloor(newFloor) {
+		if (newFloor < 0 || newFloor > 15) return;
+		currentFloor = newFloor;
+		floorLabel.textContent = formatFloor(currentFloor);
+		coordsLabelZ.textContent = 'Z: ' + currentFloor;
+		tileCache.clear();
+		draw();
+		buildAreaLabels();
+		setUrlPosition(
+			{ x: crosshairX, y: crosshairY, floor: currentFloor, zoom: zoomLevel },
+			true,
+		);
+	}
+
+	const formatFloor = function (floor) {
+		if (floor === 7) {
+			return '0';
+		}
+		if (floor < 7) {
+			return '+' + (7 - floor);
+		}
+		return '-' + (floor - 7);
+	};
+
+	// Zoom operations.
+	function zoomTo(newZoom, pivotX, pivotY) {
+		newZoom = clamp(newZoom, 0, 4);
+		if (newZoom === zoomLevel) return;
+
+		const oldScale = zoomCurrentScale;
+		zoomLevel = newZoom;
+		zoomTargetScale = ZOOM_SCALES[zoomLevel];
+
+		if (pivotX !== undefined && pivotY !== undefined) {
+			// Record the pivot point in game coordinates using the current scale.
+			zoomPivotGameX = (pivotX - canvas.width / 2) / oldScale + centerX;
+			zoomPivotGameY = (pivotY - canvas.height / 2) / oldScale + centerY;
+			zoomPivotScreenX = pivotX;
+			zoomPivotScreenY = pivotY;
+		} else {
+			// Center of canvas as fallback pivot.
+			zoomPivotGameX = centerX;
+			zoomPivotGameY = centerY;
+			zoomPivotScreenX = canvas.width / 2;
+			zoomPivotScreenY = canvas.height / 2;
+		}
+
+		setUrlPosition(
+			{ x: crosshairX, y: crosshairY, floor: currentFloor, zoom: zoomLevel },
+			true,
+		);
+	}
+
+	// Toggle operations.
+	function toggleExiva() {
+		exivaEnabled = !exivaEnabled;
+		exivaBtn.classList.toggle('active', exivaEnabled);
+		draw();
+	}
+
+	// Toggle markers.
+	function toggleMarkers() {
+		markersEnabled = !markersEnabled;
+		markersBtn.classList.toggle('active', markersEnabled);
+		draw();
+	}
+
+	// Toggle areas.
+	function toggleAreas() {
+		areasEnabled = !areasEnabled;
+		areasBtn.classList.toggle('active', areasEnabled);
+		draw();
+		buildAreaLabels();
+	}
+
+	// Toggle map type.
+	function toggleMapType() {
+		isColorMap = !isColorMap;
+		typeBtn.classList.toggle('active', !isColorMap);
+		tileCache.clear();
+		draw();
+	}
+
+	// Toggle pseudo fullscreen.
+	function togglePseudoFullscreen() {
+		pseudoFullscreenEnabled = !pseudoFullscreenEnabled;
+		document.documentElement.classList.toggle(
+			'map-pseudo-fullscreen',
+			pseudoFullscreenEnabled,
+		);
+		fullscreenBtn.classList.toggle('active', pseudoFullscreenEnabled);
+		resizeCanvas();
+	}
+
+	// LERP animation loop.
+	function updateAnimation() {
+		let needsRedraw = false;
+
+		// 1. Pan smoothing interpolation.
+		if (panTargetX !== null && panTargetY !== null) {
+			const nextX = centerX + (panTargetX - centerX) * 0.25;
+			const nextY = centerY + (panTargetY - centerY) * 0.25;
+			const clamped = clampCenter(nextX, nextY, zoomCurrentScale);
+			centerX = clamped.x;
+			centerY = clamped.y;
+
+			if (
+				Math.abs(centerX - panTargetX) < 0.05 &&
+				Math.abs(centerY - panTargetY) < 0.05
+			) {
+				centerX = panTargetX;
+				centerY = panTargetY;
+				panTargetX = null;
+				panTargetY = null;
+			}
+			needsRedraw = true;
+		}
+
+		// 2. Zoom smoothing interpolation.
+		if (Math.abs(zoomCurrentScale - zoomTargetScale) > 0.01) {
+			zoomCurrentScale += (zoomTargetScale - zoomCurrentScale) * 0.2;
+			if (zoomPivotGameX !== null && zoomPivotGameY !== null) {
+				const tx =
+					zoomPivotGameX -
+					(zoomPivotScreenX - canvas.width / 2) / zoomCurrentScale;
+				const ty =
+					zoomPivotGameY -
+					(zoomPivotScreenY - canvas.height / 2) / zoomCurrentScale;
+				const clamped = clampCenter(tx, ty, zoomCurrentScale);
+				centerX = clamped.x;
+				centerY = clamped.y;
+			}
+			needsRedraw = true;
+		} else {
+			if (zoomCurrentScale !== zoomTargetScale) {
+				zoomCurrentScale = zoomTargetScale;
+				needsRedraw = true;
+			}
+			if (zoomPivotGameX !== null) {
+				const tx =
+					zoomPivotGameX -
+					(zoomPivotScreenX - canvas.width / 2) / zoomCurrentScale;
+				const ty =
+					zoomPivotGameY -
+					(zoomPivotScreenY - canvas.height / 2) / zoomCurrentScale;
+				const clamped = clampCenter(tx, ty, zoomCurrentScale);
+				centerX = clamped.x;
+				centerY = clamped.y;
+				zoomPivotGameX = null;
+				zoomPivotGameY = null;
+				needsRedraw = true;
+			}
+		}
+
+		if (needsRedraw) {
+			draw();
+		}
+		requestAnimationFrame(updateAnimation);
+	}
+	requestAnimationFrame(updateAnimation);
+
+	// Resize canvas to container.
+	function resizeCanvas() {
+		if (!canvas) return;
+		const container = document.getElementById('map');
+		canvas.width = container.clientWidth;
+		canvas.height = container.clientHeight;
+		ctx.imageSmoothingEnabled = false;
+
+		const clamped = clampCenter(centerX, centerY, zoomCurrentScale);
+		centerX = clamped.x;
+		centerY = clamped.y;
+
+		draw();
+	}
+
+	// Initialize custom map viewer.
+	function initMap() {
+		const container = document.getElementById('map');
+
+		// 1. Parse initial dataset state.
+		const dataset = container ? container.dataset : {};
+		if (dataset.markersEnabled !== undefined) {
+			markersEnabled = dataset.markersEnabled === 'true';
+		}
+		if (dataset.areasEnabled !== undefined) {
+			areasEnabled = dataset.areasEnabled === 'true';
+		}
+		if (dataset.exivaEnabled !== undefined) {
+			exivaEnabled = dataset.exivaEnabled === 'true';
+		}
+
+		const initial = getUrlPosition();
+		centerX = initial.x;
+		centerY = initial.y;
+		currentFloor = initial.floor;
+		zoomLevel = initial.zoom;
+
+		crosshairX = centerX;
+		crosshairY = centerY;
+
+		zoomTargetScale = ZOOM_SCALES[zoomLevel];
+		zoomCurrentScale = ZOOM_SCALES[zoomLevel];
+
+		// 2. Build canvas.
+		canvas = document.createElement('canvas');
+		canvas.style.display = 'block';
+		canvas.style.imageRendering = 'pixelated';
+		container.innerHTML = '';
+		container.appendChild(canvas);
+		container.appendChild(labelsContainer);
+		container.appendChild(tooltipEl);
+		ctx = canvas.getContext('2d');
+		ctx.imageSmoothingEnabled = false;
+
+		// 3. Register canvas listeners.
+		let isDragging = false;
+		let dragStartX, dragStartY;
+		let dragStartCenterX, dragStartCenterY;
+
+		canvas.addEventListener('mousedown', (event) => {
+			isDragging = true;
+			dragStartX = event.clientX;
+			dragStartY = event.clientY;
+			dragStartCenterX = centerX;
+			dragStartCenterY = centerY;
+			panTargetX = null; // Interrupt keyboard animations.
+			panTargetY = null;
+		});
+
+		window.addEventListener('mouseup', () => {
+			isDragging = false;
+		});
+
+		canvas.addEventListener('mousemove', (event) => {
+			if (isDragging) {
+				const dx = event.clientX - dragStartX;
+				const dy = event.clientY - dragStartY;
+				const scale = zoomCurrentScale;
+				const tx = dragStartCenterX - dx / scale;
+				const ty = dragStartCenterY - dy / scale;
+				const clamped = clampCenter(tx, ty, scale);
+				centerX = clamped.x;
+				centerY = clamped.y;
+				draw();
+			} else {
+				checkHover(event);
+			}
+		});
+
+		// Mouse wheel instant snapping zoom with cooldown.
+		let lastZoomTime = 0;
+		const cooldownMs = 150;
+		container.addEventListener('wheel', (event) => {
+			event.preventDefault();
+			const now = Date.now();
+			if (now - lastZoomTime < cooldownMs) return;
+			lastZoomTime = now;
+
+			const rect = canvas.getBoundingClientRect();
+			const pivotX = event.clientX - rect.left;
+			const pivotY = event.clientY - rect.top;
+
+			const newZoom = event.deltaY < 0 ? zoomLevel + 1 : zoomLevel - 1;
+			zoomTo(newZoom, pivotX, pivotY);
+		});
+
+		// Canvas click updates exiva crosshairs and hash.
+		canvas.addEventListener('click', (event) => {
+			if (isDragging) return;
+			const rect = canvas.getBoundingClientRect();
+			const mouseX = event.clientX - rect.left;
+			const mouseY = event.clientY - rect.top;
+			const scale = zoomCurrentScale;
+
+			crosshairX = Math.floor((mouseX - rect.width / 2) / scale + centerX);
+			crosshairY = Math.floor((mouseY - rect.height / 2) / scale + centerY);
+
+			setUrlPosition(
+				{ x: crosshairX, y: crosshairY, floor: currentFloor, zoom: zoomLevel },
+				true,
+			);
+
+			if (window.console) {
+				const xID = Math.floor(crosshairX / 256) * 256;
+				const yID = Math.floor(crosshairY / 256) * 256;
+				const id = xID + '_' + yID + '_' + currentFloor;
+				console.log(id);
+			}
+
+			draw();
+		});
+
+		// Touch drag support.
+		canvas.addEventListener('touchstart', (event) => {
+			if (event.touches.length !== 1) return;
+			isDragging = true;
+			dragStartX = event.touches[0].clientX;
+			dragStartY = event.touches[0].clientY;
+			dragStartCenterX = centerX;
+			dragStartCenterY = centerY;
+			panTargetX = null;
+			panTargetY = null;
+		});
+
+		canvas.addEventListener('touchmove', (event) => {
+			if (!isDragging || event.touches.length !== 1) return;
+			const dx = event.touches[0].clientX - dragStartX;
+			const dy = event.touches[0].clientY - dragStartY;
+			const scale = zoomCurrentScale;
+			const tx = dragStartCenterX - dx / scale;
+			const ty = dragStartCenterY - dy / scale;
+			const clamped = clampCenter(tx, ty, scale);
+			centerX = clamped.x;
+			centerY = clamped.y;
+			draw();
+		});
+
+		canvas.addEventListener('touchend', () => {
+			isDragging = false;
+		});
+
+		window.addEventListener('resize', resizeCanvas);
+		resizeCanvas();
+
+		// Load external assets.
+		loadAreas();
+		loadMarkers();
+
+		// 4. Build HUD overlays.
+		buildHUD();
+	}
+
+	// Build HTML HUD panels.
+	function buildHUD() {
+		const container = document.getElementById('map');
+		const controlsContainer = document.createElement('div');
+		controlsContainer.className = 'map-controls';
+		container.appendChild(controlsContainer);
+
+		// Floor changer group.
+		const floorGroup = document.createElement('div');
+		floorGroup.className = 'map-control-group';
+		controlsContainer.appendChild(floorGroup);
+
+		const upBtn = document.createElement('button');
+		upBtn.className = 'map-btn';
+		upBtn.textContent = '▲';
+		upBtn.title = 'Go up one floor (K)';
+		upBtn.addEventListener('click', () => setFloor(currentFloor - 1));
+		floorGroup.appendChild(upBtn);
+
+		floorLabel = document.createElement('span');
+		floorLabel.className = 'map-floor-display';
+		floorLabel.textContent = formatFloor(currentFloor);
+		floorGroup.appendChild(floorLabel);
+
+		const downBtn = document.createElement('button');
+		downBtn.className = 'map-btn';
+		downBtn.textContent = '▼';
+		downBtn.title = 'Go down one floor (J)';
+		downBtn.addEventListener('click', () => setFloor(currentFloor + 1));
+		floorGroup.appendChild(downBtn);
+
+		// Overlay toggles group.
+		const toggleGroup = document.createElement('div');
+		toggleGroup.className = 'map-control-group';
+		controlsContainer.appendChild(toggleGroup);
+
+		exivaBtn = document.createElement('button');
+		exivaBtn.className = 'map-btn';
+		exivaBtn.textContent = 'E';
+		exivaBtn.title = 'Toggle exiva overlay (E)';
+		if (exivaEnabled) exivaBtn.classList.add('active');
+		exivaBtn.addEventListener('click', toggleExiva);
+		toggleGroup.appendChild(exivaBtn);
+
+		markersBtn = document.createElement('button');
+		markersBtn.className = 'map-btn';
+		markersBtn.textContent = 'M';
+		markersBtn.title = 'Toggle markers (M)';
+		if (markersEnabled) markersBtn.classList.add('active');
+		markersBtn.addEventListener('click', toggleMarkers);
+		toggleGroup.appendChild(markersBtn);
+
+		areasBtn = document.createElement('button');
+		areasBtn.className = 'map-btn';
+		areasBtn.textContent = 'A';
+		areasBtn.title = 'Toggle subarea outlines (A)';
+		if (areasEnabled) areasBtn.classList.add('active');
+		areasBtn.addEventListener('click', toggleAreas);
+		toggleGroup.appendChild(areasBtn);
+
+		typeBtn = document.createElement('button');
+		typeBtn.className = 'map-btn';
+		typeBtn.textContent = 'P';
+		typeBtn.title = 'Toggle map type (P)';
+		typeBtn.addEventListener('click', toggleMapType);
+		toggleGroup.appendChild(typeBtn);
+
+		// Fullscreen group.
+		const fsGroup = document.createElement('div');
+		fsGroup.className = 'map-control-group';
+		controlsContainer.appendChild(fsGroup);
+
+		fullscreenBtn = document.createElement('button');
+		fullscreenBtn.className = 'map-btn';
+		fullscreenBtn.textContent = 'F';
+		fullscreenBtn.title = 'Toggle pseudo-fullscreen (F)';
+		fullscreenBtn.addEventListener('click', togglePseudoFullscreen);
+		fsGroup.appendChild(fullscreenBtn);
+
+		// Coordinates labels.
+		const coordsOverlay = document.createElement('div');
+		coordsOverlay.className = 'coords-overlay';
+		container.appendChild(coordsOverlay);
+
+		coordsLabelX = document.createElement('span');
+		coordsLabelX.id = 'coords-x';
+		coordsLabelX.textContent = 'X: ' + Math.floor(centerX);
+		coordsOverlay.appendChild(coordsLabelX);
+
+		coordsLabelY = document.createElement('span');
+		coordsLabelY.id = 'coords-y';
+		coordsLabelY.textContent = 'Y: ' + Math.floor(centerY);
+		coordsOverlay.appendChild(coordsLabelY);
+
+		coordsLabelZ = document.createElement('span');
+		coordsLabelZ.id = 'coords-z';
+		coordsLabelZ.textContent = 'Z: ' + currentFloor;
+		coordsOverlay.appendChild(coordsLabelZ);
+	}
+
+	// Global keyboard shortcuts.
+	document.documentElement.addEventListener('keydown', function (event) {
+		const key = event.key.toLowerCase();
+
+		if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(key)) {
+			event.preventDefault();
+		}
+
+		const panDelta = 40; // Pixels to pan.
+		if (zoomCurrentScale !== undefined) {
+			const mapDelta = panDelta / zoomCurrentScale;
+
+			if (!panTargetX || !panTargetY) {
+				panTargetX = centerX;
+				panTargetY = centerY;
+			}
+
+			if (key === 'arrowup') {
+				panTargetY -= mapDelta;
+			}
+			if (key === 'arrowdown') {
+				panTargetY += mapDelta;
+			}
+			if (key === 'arrowleft') {
+				panTargetX -= mapDelta;
+			}
+			if (key === 'arrowright') {
+				panTargetX += mapDelta;
+			}
+		}
+
+		if (key === 'f') {
+			togglePseudoFullscreen();
+		}
+		if (key === 'escape' && pseudoFullscreenEnabled) {
+			togglePseudoFullscreen();
+		}
+		if (key === 'c') {
+			centerX = crosshairX;
+			centerY = crosshairY;
+			panTargetX = null;
+			panTargetY = null;
+			draw();
+		}
+		if (key === 'a') {
+			toggleAreas();
+		}
+		if (key === 'e') {
+			toggleExiva();
+		}
+		if (key === 'm') {
+			toggleMarkers();
+		}
+		if (key === 'p') {
+			toggleMapType();
+		}
+		if (key === 'k') {
+			setFloor(currentFloor - 1);
+		}
+		if (key === 'j') {
+			setFloor(currentFloor + 1);
+		}
+		if (key === '=' || key === '+') {
+			zoomTo(zoomLevel + 1);
+		}
+		if (key === '-') {
+			zoomTo(zoomLevel - 1);
+		}
+	});
+
+	window.addEventListener('popstate', function () {
+		const pos = getUrlPosition();
+		if (pos.floor !== currentFloor) {
+			setFloor(pos.floor);
+		}
+		if (pos.zoom !== zoomLevel) {
+			zoomTo(pos.zoom);
+		}
+		const clamped = clampCenter(pos.x, pos.y, ZOOM_SCALES[zoomLevel]);
+		centerX = clamped.x;
+		centerY = clamped.y;
+		crosshairX = centerX;
+		crosshairY = centerY;
+		draw();
+	});
+
+	// Boot map.
+	window.addEventListener('DOMContentLoaded', initMap);
 })();
