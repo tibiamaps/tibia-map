@@ -2,7 +2,7 @@
 	{
 		"area": "Ab'Dendriel",
 		"subarea": "Ab'Dendriel City",
-		"id": "ab-dendriel-city",
+		"id": "abdendriel-city",
 		"bbox": [32541, 31571, 32739, 31773],
 		"center": [32640, 31672],
 		"rings": [
@@ -695,7 +695,7 @@
 	{
 		"area": "Ab'Dendriel",
 		"subarea": "Ab'Dendriel Surroundings",
-		"id": "ab-dendriel-surroundings",
+		"id": "abdendriel-surroundings",
 		"bbox": [32471, 31644, 32712, 31819],
 		"center": [32591, 31731],
 		"rings": [
@@ -36105,7 +36105,7 @@
 	{
 		"area": "Kazordoon",
 		"subarea": "Ulderek's Rock",
-		"id": "ulderek-s-rock",
+		"id": "uldereks-rock",
 		"bbox": [32872, 31703, 32991, 31808],
 		"center": [32931, 31755],
 		"rings": [
@@ -52832,7 +52832,7 @@
 	{
 		"area": "Northern Darama",
 		"subarea": "Ashta'daramai",
-		"id": "ashta-daramai",
+		"id": "ashtadaramai",
 		"bbox": [33064, 32519, 33111, 32537],
 		"center": [33101, 32528],
 		"rings": [
@@ -54096,7 +54096,7 @@
 	{
 		"area": "Northern Darama",
 		"subarea": "Lion's Rock",
-		"id": "lion-s-rock",
+		"id": "lions-rock",
 		"bbox": [33136, 32351, 33154, 32369],
 		"center": [33148, 32364],
 		"rings": [
@@ -69304,7 +69304,7 @@
 	{
 		"area": "Southern Darama",
 		"subarea": "Kha'zeel Dragon Lairs",
-		"id": "kha-zeel-dragon-lairs",
+		"id": "khazeel-dragon-lairs",
 		"bbox": [32986, 32534, 33169, 32817],
 		"center": [33061, 32677],
 		"rings": [
@@ -70097,7 +70097,7 @@
 	{
 		"area": "Southern Darama",
 		"subarea": "Mal'ouquah",
-		"id": "mal-ouquah",
+		"id": "malouquah",
 		"bbox": [33034, 32618, 33051, 32635],
 		"center": [33042, 32626],
 		"rings": [
@@ -83490,7 +83490,7 @@
 	{
 		"area": "Tiquanda",
 		"subarea": "Kha'zeel Mountains",
-		"id": "kha-zeel-mountains",
+		"id": "khazeel-mountains",
 		"bbox": [32962, 32414, 33229, 32829],
 		"center": [33095, 32621],
 		"rings": [
@@ -114340,7 +114340,7 @@
 	{
 		"area": "Zao",
 		"subarea": "Emperor's Castle",
-		"id": "emperor-s-castle",
+		"id": "emperors-castle",
 		"bbox": [33053, 31088, 33101, 31128],
 		"center": [33077, 31108],
 		"rings": [
