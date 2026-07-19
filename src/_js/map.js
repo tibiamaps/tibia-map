@@ -33,6 +33,7 @@
 	let exivaEnabled = false;
 	let markersEnabled = true;
 	let areasEnabled = false;
+	let gridEnabled = false;
 	let isColorMap = true;
 	let pseudoFullscreenEnabled = false;
 	let typeButtonEnabled = false;
@@ -62,7 +63,13 @@
 
 	// Coordinates overlays elements.
 	let coordsLabelX, coordsLabelY, coordsLabelZ;
-	let floorLabel, exivaBtn, markersBtn, areasBtn, typeBtn, fullscreenBtn;
+	let floorLabel,
+		exivaBtn,
+		markersBtn,
+		areasBtn,
+		typeBtn,
+		fullscreenBtn,
+		gridBtn;
 
 	const setUrlPosition = function (coords, forceHash) {
 		const url =
@@ -419,6 +426,40 @@
 			}
 		}
 
+		// 2.5 Draw grid overlay.
+		if (gridEnabled) {
+			ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+			ctx.lineWidth = 1;
+			ctx.beginPath();
+
+			const sxMin = Math.round((MAP_BOUNDS.xMin - centerX) * scale + width / 2);
+			const sxMax = Math.round((MAP_BOUNDS.xMax - centerX) * scale + width / 2);
+			const syMin = Math.round(
+				(MAP_BOUNDS.yMin - centerY) * scale + height / 2,
+			);
+			const syMax = Math.round(
+				(MAP_BOUNDS.yMax - centerY) * scale + height / 2,
+			);
+
+			// Draw vertical grid lines.
+			for (let gx = startTileX * 256; gx <= (endTileX + 1) * 256; gx += 256) {
+				if (gx < MAP_BOUNDS.xMin || gx > MAP_BOUNDS.xMax) continue;
+				const sx = Math.round((gx - centerX) * scale + width / 2);
+				ctx.moveTo(sx, Math.max(0, syMin));
+				ctx.lineTo(sx, Math.min(height, syMax));
+			}
+
+			// Draw horizontal grid lines.
+			for (let gy = startTileY * 256; gy <= (endTileY + 1) * 256; gy += 256) {
+				if (gy < MAP_BOUNDS.yMin || gy > MAP_BOUNDS.yMax) continue;
+				const sy = Math.round((gy - centerY) * scale + height / 2);
+				ctx.moveTo(Math.max(0, sxMin), sy);
+				ctx.lineTo(Math.min(width, sxMax), sy);
+			}
+
+			ctx.stroke();
+		}
+
 		// 3. Draw exiva crosshairs.
 		// 3a. Draw target 1x1 square (always visible).
 		const tx = Math.round((crosshairX - centerX) * scale + width / 2);
@@ -626,6 +667,13 @@
 		buildAreaLabels();
 	}
 
+	// Toggle grid.
+	function toggleGrid() {
+		gridEnabled = !gridEnabled;
+		gridBtn.classList.toggle('active', gridEnabled);
+		draw();
+	}
+
 	// Toggle map type.
 	function toggleMapType() {
 		isColorMap = !isColorMap;
@@ -744,6 +792,9 @@
 		}
 		if (dataset.typeButtonEnabled !== undefined) {
 			typeButtonEnabled = dataset.typeButtonEnabled === 'true';
+		}
+		if (dataset.gridEnabled !== undefined) {
+			gridEnabled = dataset.gridEnabled === 'true';
 		}
 
 		const initial = getUrlPosition();
@@ -957,6 +1008,15 @@
 		}
 		toggleGroup.appendChild(typeBtn);
 
+		gridBtn = document.createElement('button');
+		gridBtn.className = 'map-btn';
+		gridBtn.textContent = 'G';
+		gridBtn.title = 'Toggle grid overlay (G)';
+		gridBtn.style.display = 'none';
+		if (gridEnabled) gridBtn.classList.add('active');
+		gridBtn.addEventListener('click', toggleGrid);
+		toggleGroup.appendChild(gridBtn);
+
 		// Fullscreen group.
 		const fsGroup = document.createElement('div');
 		fsGroup.className = 'map-control-group';
@@ -1036,6 +1096,9 @@
 		}
 		if (key === 'a') {
 			toggleAreas();
+		}
+		if (key === 'g') {
+			toggleGrid();
 		}
 		if (key === 'e') {
 			toggleExiva();
