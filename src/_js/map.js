@@ -1,6 +1,7 @@
 (function () {
 	const IS_TIBIAMAPS_IO = location.origin === 'https://tibiamaps.io';
-	const IS_LOCALHOST = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+	const IS_LOCALHOST =
+		location.hostname === 'localhost' || location.hostname === '127.0.0.1';
 	const URL_PREFIX = 'https://tibiamaps.github.io/tibia-map-data/';
 	const IMAGE_URL_PREFIX = IS_TIBIAMAPS_IO
 		? '/_img/marker-icons/'
@@ -31,7 +32,7 @@
 	let zoomLevel = 0;
 	let exivaEnabled = false;
 	let markersEnabled = true;
-	let areasEnabled = true;
+	let areasEnabled = false;
 	let isColorMap = true;
 	let pseudoFullscreenEnabled = false;
 
