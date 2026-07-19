@@ -153,6 +153,7 @@
 			// has not finished loading yet.
 			if (KNOWN_TILES && !KNOWN_TILES.has(tileId)) {
 				tile.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+				// Defer the callback to the next tick to ensure Leaflet has cached the tile before it is marked as ready.
 				setTimeout(function () {
 					done(null, tile);
 				}, 0);
