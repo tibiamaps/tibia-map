@@ -60,8 +60,14 @@
 	border-bottom: none;
 }
 
-.map-btn:hover {
+.map-btn:hover,
+.map-btn:focus-visible {
 	background-color: #f4f4f4;
+}
+
+.map-btn:focus-visible {
+	outline: 2px solid #005fcc;
+	outline-offset: -2px;
 }
 
 .map-btn:active {
