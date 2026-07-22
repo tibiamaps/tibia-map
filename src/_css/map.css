@@ -42,6 +42,8 @@
 	background: transparent;
 	border: none;
 	color: #333;
+	text-decoration: none;
+	font-family: sans-serif;
 	width: 30px;
 	height: 30px;
 	font-size: 14px;

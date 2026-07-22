@@ -71,11 +71,18 @@
 		fullscreenBtn,
 		gridBtn;
 
+	const unembed = function (url) {
+		return url.replace('/embed', '').replace('?forceBlankTarget', '');
+	};
+
 	const setUrlPosition = function (coords, forceHash) {
 		const url =
 			'#' + coords.x + ',' + coords.y + ',' + coords.floor + ':' + coords.zoom;
 		if (forceHash && location.hash != url) {
 			window.history.pushState(null, null, url);
+		}
+		if (isEmbed && fullscreenBtn) {
+			fullscreenBtn.href = unembed(location.href);
 		}
 	};
 
@@ -1022,11 +1029,33 @@
 		fsGroup.className = 'map-control-group';
 		controlsContainer.appendChild(fsGroup);
 
-		fullscreenBtn = document.createElement('button');
-		fullscreenBtn.className = 'map-btn';
-		fullscreenBtn.textContent = 'F';
-		fullscreenBtn.title = 'Toggle pseudo-fullscreen (F)';
-		fullscreenBtn.addEventListener('click', togglePseudoFullscreen);
+		if (isEmbed) {
+			fullscreenBtn = document.createElement('a');
+			fullscreenBtn.className = 'map-btn';
+			fullscreenBtn.textContent = 'F';
+			fullscreenBtn.title = 'Toggle pseudo-fullscreen (F)';
+			fullscreenBtn.href = unembed(location.href);
+			const forceBlankTarget = new URLSearchParams(location.search).has(
+				'forceBlankTarget',
+			);
+			if (forceBlankTarget) {
+				fullscreenBtn.target = '_blank';
+			}
+			fullscreenBtn.addEventListener('click', function (event) {
+				if (forceBlankTarget) {
+					window.open(fullscreenBtn.href, '_blank');
+				} else {
+					window.top.location = fullscreenBtn.href;
+				}
+				event.preventDefault();
+			});
+		} else {
+			fullscreenBtn = document.createElement('button');
+			fullscreenBtn.className = 'map-btn';
+			fullscreenBtn.textContent = 'F';
+			fullscreenBtn.title = 'Toggle pseudo-fullscreen (F)';
+			fullscreenBtn.addEventListener('click', togglePseudoFullscreen);
+		}
 		fsGroup.appendChild(fullscreenBtn);
 
 		// Coordinates labels.
@@ -1137,6 +1166,9 @@
 		crosshairX = centerX;
 		crosshairY = centerY;
 		draw();
+		if (isEmbed && fullscreenBtn) {
+			fullscreenBtn.href = unembed(location.href);
+		}
 	});
 
 	// Boot map.
