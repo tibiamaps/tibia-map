@@ -3,9 +3,8 @@
 	const IS_LOCALHOST =
 		location.hostname === 'localhost' || location.hostname === '127.0.0.1';
 	const URL_PREFIX = 'https://tibiamaps.github.io/tibia-map-data/';
-	const IMAGE_URL_PREFIX = IS_TIBIAMAPS_IO
-		? '/_img/marker-icons/'
-		: '_img/marker-icons/';
+	const PATH_PREFIX = IS_TIBIAMAPS_IO ? '/' : '';
+	const IMAGE_URL_PREFIX = `${PATH_PREFIX}_img/marker-icons/`;
 
 	const ZOOM_SCALES = [1, 2, 7, 20, 40];
 	// Keep in sync with https://tibiamaps.github.io/tibia-map-data/bounds.json,
@@ -166,7 +165,7 @@
 		const container = document.getElementById('map');
 		const dataset = container ? container.dataset : {};
 
-		let url = '_json/areas.json';
+		let url = `${PATH_PREFIX}_json/areas.json`;
 		if (IS_LOCALHOST) {
 			url += '?t=' + Date.now();
 		}
