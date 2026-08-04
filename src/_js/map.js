@@ -10,6 +10,7 @@
 	// Keep in sync with https://tibiamaps.github.io/tibia-map-data/bounds.json,
 	// adding `256` for `xMax` and `yMax`.
 	const MAP_BOUNDS = { xMin: 31744, xMax: 34304, yMin: 30976, yMax: 33024 };
+	const DRAG_THRESHOLD_PIXELS = 2;
 
 	let KNOWN_TILES = null;
 	const fetchKnownTiles = async function () {
@@ -828,11 +829,13 @@
 
 		// 3. Register canvas listeners.
 		let isDragging = false;
+		let hasDragged = false;
 		let dragStartX, dragStartY;
 		let dragStartCenterX, dragStartCenterY;
 
 		canvas.addEventListener('mousedown', (event) => {
 			isDragging = true;
+			hasDragged = false;
 			dragStartX = event.clientX;
 			dragStartY = event.clientY;
 			dragStartCenterX = centerX;
@@ -849,6 +852,12 @@
 			if (isDragging) {
 				const dx = event.clientX - dragStartX;
 				const dy = event.clientY - dragStartY;
+				if (
+					Math.abs(dx) > DRAG_THRESHOLD_PIXELS ||
+					Math.abs(dy) > DRAG_THRESHOLD_PIXELS
+				) {
+					hasDragged = true;
+				}
 				const scale = zoomCurrentScale;
 				const tx = dragStartCenterX - dx / scale;
 				const ty = dragStartCenterY - dy / scale;
@@ -880,7 +889,7 @@
 
 		// Canvas click updates exiva crosshairs and hash.
 		canvas.addEventListener('click', (event) => {
-			if (isDragging) return;
+			if (hasDragged) return;
 			const rect = canvas.getBoundingClientRect();
 			const mouseX = event.clientX - rect.left;
 			const mouseY = event.clientY - rect.top;
@@ -908,6 +917,7 @@
 		canvas.addEventListener('touchstart', (event) => {
 			if (event.touches.length !== 1) return;
 			isDragging = true;
+			hasDragged = false;
 			dragStartX = event.touches[0].clientX;
 			dragStartY = event.touches[0].clientY;
 			dragStartCenterX = centerX;
@@ -920,6 +930,12 @@
 			if (!isDragging || event.touches.length !== 1) return;
 			const dx = event.touches[0].clientX - dragStartX;
 			const dy = event.touches[0].clientY - dragStartY;
+			if (
+				Math.abs(dx) > DRAG_THRESHOLD_PIXELS ||
+				Math.abs(dy) > DRAG_THRESHOLD_PIXELS
+			) {
+				hasDragged = true;
+			}
 			const scale = zoomCurrentScale;
 			const tx = dragStartCenterX - dx / scale;
 			const ty = dragStartCenterY - dy / scale;
