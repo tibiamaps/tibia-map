@@ -1159,6 +1159,9 @@
 		if (key === 'j') {
 			setFloor(currentFloor + 1);
 		}
+		if (key === 'l') {
+			setFloor(7);
+		}
 		if (key === '=' || key === '+') {
 			zoomTo(zoomLevel + 1);
 		}
