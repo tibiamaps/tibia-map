@@ -60,6 +60,12 @@
 	let canvas, ctx;
 	const tileCache = new Map();
 	const markerIconCache = new Map();
+	const helperCanvas = document.createElement('canvas');
+	helperCanvas.width = 256;
+	helperCanvas.height = 256;
+	const helperContext = helperCanvas.getContext('2d', {
+		willReadFrequently: true,
+	});
 
 	// Coordinates overlays elements.
 	let coordsLabelX, coordsLabelY, coordsLabelZ;
@@ -337,6 +343,7 @@
 				let img = tileCache.get(tileId);
 				if (!img) {
 					img = new Image();
+					img.crossOrigin = 'anonymous';
 					img.onload = () => draw();
 					img.src =
 						URL_PREFIX +
@@ -689,6 +696,43 @@
 		draw();
 	}
 
+	// Log friction value for a tile in pathfinding mode.
+	const logTileFriction = (tileId, pixelX, pixelY) => {
+		let img = tileCache.get(tileId);
+		if (!img) {
+			img = new Image();
+			img.crossOrigin = 'anonymous';
+			img.onload = () => draw();
+			img.src = `${URL_PREFIX}mapper/Minimap_WaypointCost_${tileId}.png`;
+			tileCache.set(tileId, img);
+		}
+		const process = () => {
+			if (img.naturalWidth === 0) return;
+			if (!img._imageData) {
+				helperContext.clearRect(0, 0, 256, 256);
+				helperContext.drawImage(img, 0, 0);
+				img._imageData = helperContext.getImageData(0, 0, 256, 256).data;
+			}
+			const offset = (pixelY * 256 + pixelX) * 4;
+			const r = img._imageData[offset];
+			const g = img._imageData[offset + 1];
+			const b = img._imageData[offset + 2];
+			if (r === 0xff && g === 0x00 && b === 0xff) {
+				console.log('#FF00FF unexplored');
+			} else if (r === 0xff && g === 0xff && b === 0x00) {
+				console.log('#FFFF00 unwalkable');
+			} else {
+				console.assert(r === g && g === b);
+				console.log(`friction=${r}`);
+			}
+		};
+		if (img.complete && img.naturalWidth !== 0) {
+			process();
+		} else {
+			img.addEventListener('load', process, { once: true });
+		}
+	};
+
 	// Toggle pseudo fullscreen.
 	function togglePseudoFullscreen() {
 		pseudoFullscreenEnabled = !pseudoFullscreenEnabled;
@@ -908,6 +952,12 @@
 				const yID = Math.floor(crosshairY / 256) * 256;
 				const id = xID + '_' + yID + '_' + currentFloor;
 				console.log(id);
+
+				if (!isColorMap) {
+					const pixelX = crosshairX - xID;
+					const pixelY = crosshairY - yID;
+					logTileFriction(id, pixelX, pixelY);
+				}
 			}
 
 			draw();
