@@ -878,6 +878,7 @@
 		let dragStartCenterX, dragStartCenterY;
 
 		canvas.addEventListener('mousedown', (event) => {
+			if (event.button !== 0) return;
 			isDragging = true;
 			hasDragged = false;
 			dragStartX = event.clientX;
@@ -894,6 +895,11 @@
 
 		canvas.addEventListener('mousemove', (event) => {
 			if (isDragging) {
+				if ((event.buttons & 1) === 0) {
+					isDragging = false;
+					checkHover(event);
+					return;
+				}
 				const dx = event.clientX - dragStartX;
 				const dy = event.clientY - dragStartY;
 				if (
@@ -998,8 +1004,18 @@
 		canvas.addEventListener('touchend', () => {
 			isDragging = false;
 		});
+		canvas.addEventListener('touchcancel', () => {
+			isDragging = false;
+		});
 
-		window.addEventListener('resize', resizeCanvas);
+		window.addEventListener('blur', () => {
+			isDragging = false;
+		});
+
+		window.addEventListener('resize', () => {
+			isDragging = false;
+			resizeCanvas();
+		});
 		resizeCanvas();
 
 		// Load external assets.
