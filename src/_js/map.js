@@ -1161,8 +1161,16 @@
 	}
 
 	// Global keyboard shortcuts.
-	document.documentElement.addEventListener('keydown', function (event) {
+	document.documentElement.addEventListener('keydown', (event) => {
 		const key = event.key.toLowerCase();
+		if (
+			event.altKey ||
+			event.ctrlKey ||
+			event.metaKey ||
+			(event.shiftKey && key !== '+' && key !== '=')
+		) {
+			return;
+		}
 
 		if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(key)) {
 			event.preventDefault();
