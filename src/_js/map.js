@@ -487,9 +487,9 @@
 		ctx.strokeStyle = '#333333';
 		ctx.lineWidth = 2;
 		if (exivaEnabled) {
-			// 3b. Draw exiva 100 & 250 concentric squares.
-			const s100 = Math.round(100 * scale);
-			ctx.strokeRect(tx - s100, ty - s100, tSize + s100 * 2, tSize + s100 * 2);
+			// 3b. Draw exiva 99 & 250 concentric squares.
+			const s99 = Math.round(99 * scale);
+			ctx.strokeRect(tx - s99, ty - s99, tSize + s99 * 2, tSize + s99 * 2);
 
 			const s250 = Math.round(250 * scale);
 			ctx.strokeRect(tx - s250, ty - s250, tSize + s250 * 2, tSize + s250 * 2);
@@ -514,7 +514,7 @@
 			ctx.stroke();
 		}
 
-		// 4. Draw Markers.
+		// 4. Draw markers.
 		if (markersEnabled) {
 			markersData.forEach((m) => {
 				if (m.z !== currentFloor) return;
